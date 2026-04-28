@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Financier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f14;
+      --surface: #13161d;
+      --surface2: #1a1e28;
+      --border: #252a38;
+      --accent: #c8f542;
+      --accent2: #42a5f5;
+      --accent3: #ff6b6b;
+      --text: #e8eaf0;
+      --muted: #6b7280;
+      --success: #4ade80;
+      --warning: #fbbf24;
+    }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ---- HEADER ---- */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .logo {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 16px; color: #0d0f14;
+    }
+    .header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    .header-controls { display: flex; align-items: center; gap: 12px; }
+
+    /* Period selector */
+    .period-group {
+      display: flex;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .period-btn {
+      padding: 8px 14px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .period-btn.active { background: var(--accent); color: #0d0f14; }
+    .period-btn:hover:not(.active) { color: var(--text); }
+
+    .date-inputs { display: flex; gap: 8px; align-items: center; }
+    .date-inputs input {
+      padding: 7px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+    }
+    .date-inputs input:focus { outline: none; border-color: var(--accent); }
+    .date-label { font-size: 12px; color: var(--muted); }
+
+    .btn-refresh {
+      padding: 8px 18px;
+      background: var(--accent);
+      color: #0d0f14;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .btn-refresh:hover { opacity: 0.85; }
+    .btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ---- STATUS BAR ---- */
+    .status-bar {
+      padding: 8px 32px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; color: var(--muted);
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--muted);
+    }
+    .status-dot.loading { background: var(--warning); animation: pulse 1s infinite; }
+    .status-dot.ok { background: var(--success); }
+    .status-dot.error { background: var(--accent3); }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* ---- MAIN ---- */
+    .main { padding: 28px 32px; max-width: 1600px; }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .section-accent { color: var(--accent); }
+
+    /* ---- KPI GRID ---- */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      transition: border-color 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent-color, var(--accent));
+    }
+    .kpi-card:hover { border-color: rgba(200, 245, 66, 0.3); }
+    .kpi-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .kpi-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 26px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1;
+    }
+    .kpi-value.loading { color: var(--border); }
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ---- TABLES ---- */
+    .tables-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .table-title { font-size: 13px; font-weight: 700; }
+    .table-count {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      background: var(--surface2);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .table-scroll { overflow-x: auto; max-height: 320px; overflow-y: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead { position: sticky; top: 0; z-index: 1; }
+    th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--surface2);
+      white-space: nowrap;
+    }
+    th:last-child, td:last-child { text-align: right; }
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    td.name-col {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+    .amount-pos { color: var(--success); }
+    .amount-neg { color: var(--accent3); }
+
+    /* ---- PURCHASE SECTION ---- */
+    .purchase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    /* ---- EMPTY / ERROR STATES ---- */
+    .empty-state {
+      padding: 40px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .error-state {
+      padding: 16px 20px;
+      color: var(--accent3);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ---- SKELETON ---- */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+      height: 28px;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* ---- PAID BADGE ---- */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+    }
+    .badge-paid { background: rgba(74, 222, 128, 0.15); color: var(--success); }
+    .badge-unpaid { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+
+    /* ---- SCROLL ---- */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 900px) {
+      .tables-grid, .purchase-grid { grid-template-columns: 1fr; }
+      .header { flex-wrap: wrap; gap: 12px; }
+      .header-controls { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo">B</div>
+    <h1>Dashboard Financier</h1>
+  </div>
+  <div class="header-controls">
+    <div class="period-group">
+      <button class="period-btn" onclick="setPeriod('month')">Ce mois</button>
+      <button class="period-btn active" onclick="setPeriod('year')">Cette année</button>
+      <button class="period-btn" onclick="setPeriod('custom')">Personnalisé</button>
+    </div>
+    <div class="date-inputs" id="customDateInputs" style="display:none">
+      <span class="date-label">Du</span>
+      <input type="date" id="dateFrom" />
+      <span class="date-label">au</span>
+      <input type="date" id="dateTo" />
+    </div>
+    <button class="btn-refresh" onclick="loadAll()" id="refreshBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+      Actualiser
+    </button>
+  </div>
+</header>
+
+<div class="status-bar">
+  <div class="status-dot" id="statusDot"></div>
+  <span id="statusText">En attente...</span>
+</div>
+
+<main class="main">
+
+  <!-- ============ VENTES ============ -->
+  <div class="section-title"><span class="section-accent">01</span> VENTES - Facturé à date</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--accent-color: var(--accent)">
+      <div class="kpi-label">Total HTVA facturé</div>
+      <div class="kpi-value" id="kpi-total-invoiced">--</div>
+      <div class="kpi-sub" id="kpi-total-invoiced-count"></div>
+    </div>
+    <div class="kpi-card" style="--accent-color: var(--success)">
+      <div class="kpi-label">Total payé HTVA</div>
+      <div class="kpi-value" id="kpi-total-paid">--</div>
+      <div class="kpi-sub" id="kpi-total-paid-count"></div>
+    </div>
+    <div class="kpi-card" style="--accent-color: var(--warning)">
+      <div class="kpi-label">Total à payer HTVA</div>
+      <div class="kpi-value" id="kpi-total-unpaid">--</div>
+      <div class="kpi-sub" id="kpi-total-unpaid-count"></div>
+    </div>
+    <div class="kpi-card" style="--accent-color: var(--accent2)">
+      <div class="kpi-label">Pipeline dev (attente appro.)</div>
+      <div class="kpi-value" id="kpi-dev">--</div>
+      <div class="kpi-sub" id="kpi-dev-count"></div>
+    </div>
+    <div class="kpi-card" style="--accent-color: var(--accent3)">
+      <div class="kpi-label">A facturer (devis approuvés)</div>
+      <div class="kpi-value" id="kpi-to-invoice">--</div>
+      <div class="kpi-sub" id="kpi-to-invoice-count"></div>
+    </div>
+  </div>
+
+  <div class="tables-grid">
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-title">Facturé par client</span>
+        <span class="table-count" id="count-invoiced-clients">0</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Client</th><th>HTVA</th><th>Statut</th></tr></thead>
+          <tbody id="table-invoiced-clients"><tr><td colspan="3" class="empty-state">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-title">A facturer par client</span>
+        <span class="table-count" id="count-to-invoice-clients">0</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Client</th><th>HTVA (hors avances)</th></tr></thead>
+          <tbody id="table-to-invoice-clients"><tr><td colspan="2" class="empty-state">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ACHATS ============ -->
+  <div class="section-title"><span class="section-accent">02</span> ACHATS</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--accent-color: var(--accent3)">
+      <div class="kpi-label">Total achats HTVA</div>
+      <div class="kpi-value" id="kpi-purchase-total">--</div>
+      <div class="kpi-sub" id="kpi-purchase-count"></div>
+    </div>
+  </div>
+
+  <div class="purchase-grid">
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-title">Par fournisseur</span>
+        <span class="table-count" id="count-suppliers">0</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Fournisseur</th><th>HTVA</th></tr></thead>
+          <tbody id="table-suppliers"><tr><td colspan="2" class="empty-state">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-title">Par projet</span>
+        <span class="table-count" id="count-projects">0</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Projet</th><th>HTVA</th></tr></thead>
+          <tbody id="table-projects"><tr><td colspan="2" class="empty-state">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-title">Par catégorie</span>
+        <span class="table-count" id="count-categories">0</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Catégorie</th><th>HTVA</th></tr></thead>
+          <tbody id="table-categories"><tr><td colspan="2" class="empty-state">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const API_BASE = '/api/billit'; // Netlify Function proxy
+
+// ============================================================
+// STATE
+// ============================================================
+let currentPeriod = 'year';
+let dateFrom = '';
+let dateTo = '';
+
+// ============================================================
+// PERIOD HELPERS
+// ============================================================
+function setPeriod(period) {
+  currentPeriod = period;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const customDiv = document.getElementById('customDateInputs');
+  customDiv.style.display = period === 'custom' ? 'flex' : 'none';
+
+  if (period !== 'custom') loadAll();
+}
+
+function getPeriodDates() {
+  const now = new Date();
+  if (currentPeriod === 'month') {
+    return {
+      from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0],
+      to: now.toISOString().split('T')[0],
+    };
+  } else if (currentPeriod === 'year') {
+    return {
+      from: new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0],
+      to: now.toISOString().split('T')[0],
+    };
+  } else {
+    return {
+      from: document.getElementById('dateFrom').value,
+      to: document.getElementById('dateTo').value,
+    };
+  }
+}
+
+// ============================================================
+// API CALLS
+// ============================================================
+async function billitGet(endpoint) {
+  const res = await fetch(`${API_BASE}?endpoint=${encodeURIComponent(endpoint)}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function fetchAllPages(baseEndpoint) {
+  // Billit OData - on pagine si besoin (top/skip)
+  // Pour commencer on fait un appel avec un top élevé
+  const separator = baseEndpoint.includes('?') ? '&' : '?';
+  const url = `${baseEndpoint}${separator}$top=500`;
+  const data = await billitGet(url);
+  return data.Items || data.items || data || [];
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+const fmt = (v) => new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(v || 0);
+
+function setStatus(state, text) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot ' + state;
+  document.getElementById('statusText').textContent = text;
+}
+
+function buildOdataFilter(from, to, extra = '') {
+  let filter = `OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
+  if (extra) filter += ` and ${extra}`;
+  return `?$filter=${encodeURIComponent(filter)}`;
+}
+
+// Acompts / avances keywords
+const ADVANCE_KEYWORDS = ['avance', 'acompte', 'advance', 'deposit'];
+function isAdvance(item) {
+  const desc = ((item.OrderNumber || '') + ' ' + (item.Remarks || '') + ' ' + (item.Description || '')).toLowerCase();
+  return ADVANCE_KEYWORDS.some(k => desc.includes(k));
+}
+
+// Group and sum by key
+function groupBy(items, keyFn, valueFn) {
+  const map = {};
+  for (const item of items) {
+    const key = keyFn(item) || 'Non renseigné';
+    map[key] = (map[key] || 0) + (valueFn(item) || 0);
+  }
+  return Object.entries(map).sort((a, b) => b[1] - a[1]);
+}
+
+function renderTable(tbodyId, rows, colFn) {
+  const tbody = document.getElementById(tbodyId);
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">Aucune donnée pour cette période</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(colFn).join('');
+}
+
+// ============================================================
+// VENTES - FACTURES
+// ============================================================
+async function loadInvoices(from, to) {
+  // Factures émises (Income)
+  const filter = `OrderType eq 'Invoice' and OrderDirection eq 'Income' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
+  const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
+
+  let totalInvoiced = 0, totalPaid = 0, totalUnpaid = 0;
+  let paidCount = 0, unpaidCount = 0;
+  const byClient = {};
+
+  for (const item of items) {
+    const htva = item.TotalExcl || 0;
+    totalInvoiced += htva;
+    if (item.Paid) { totalPaid += htva; paidCount++; }
+    else { totalUnpaid += htva; unpaidCount++; }
+
+    const client = item.CounterParty?.DisplayName || 'Inconnu';
+    byClient[client] = (byClient[client] || 0) + htva;
+  }
+
+  document.getElementById('kpi-total-invoiced').textContent = fmt(totalInvoiced);
+  document.getElementById('kpi-total-invoiced-count').textContent = `${items.length} facture(s)`;
+  document.getElementById('kpi-total-paid').textContent = fmt(totalPaid);
+  document.getElementById('kpi-total-paid-count').textContent = `${paidCount} payée(s)`;
+  document.getElementById('kpi-total-unpaid').textContent = fmt(totalUnpaid);
+  document.getElementById('kpi-total-unpaid-count').textContent = `${unpaidCount} en attente`;
+
+  const clientRows = Object.entries(byClient).sort((a, b) => b[1] - a[1]);
+  document.getElementById('count-invoiced-clients').textContent = clientRows.length;
+  renderTable('table-invoiced-clients', clientRows, ([name, amount]) => `
+    <tr>
+      <td class="name-col">${name}</td>
+      <td>${fmt(amount)}</td>
+      <td></td>
+    </tr>
+  `);
+}
+
+// ============================================================
+// VENTES - DEVIS A FACTURER
+// ============================================================
+async function loadQuotesToInvoice(from, to) {
+  // Statut "Invoiced" = false et OrderType Quotation avec statut ToInvoice
+  // Billit : OrderType = 'Quotation', Invoiced = false
+  const filter = `OrderType eq 'Quotation' and OrderDirection eq 'Income' and Invoiced eq false and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
+  const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
+
+  let totalToInvoice = 0;
+  const byClient = {};
+
+  for (const item of items) {
+    if (isAdvance(item)) continue; // On exclut les avances/acomptes
+    const htva = item.TotalExcl || 0;
+    totalToInvoice += htva;
+    const client = item.CounterParty?.DisplayName || 'Inconnu';
+    byClient[client] = (byClient[client] || 0) + htva;
+  }
+
+  document.getElementById('kpi-to-invoice').textContent = fmt(totalToInvoice);
+  document.getElementById('kpi-to-invoice-count').textContent = `${items.length} devis (hors avances)`;
+
+  const clientRows = Object.entries(byClient).sort((a, b) => b[1] - a[1]);
+  document.getElementById('count-to-invoice-clients').textContent = clientRows.length;
+  renderTable('table-to-invoice-clients', clientRows, ([name, amount]) => `
+    <tr>
+      <td class="name-col">${name}</td>
+      <td>${fmt(amount)}</td>
+    </tr>
+  `);
+}
+
+// ============================================================
+// VENTES - DEV (ATTENTE APPROBATION)
+// ============================================================
+async function loadDevPipeline(from, to) {
+  // OrderStatus = 'WaitingForApproval' ou 'Draft' selon Billit
+  const filter = `OrderType eq 'Quotation' and OrderDirection eq 'Income' and OrderStatus eq 'WaitingForApproval' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
+  const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
+
+  let totalDev = 0;
+  for (const item of items) totalDev += (item.TotalExcl || 0);
+
+  document.getElementById('kpi-dev').textContent = fmt(totalDev);
+  document.getElementById('kpi-dev-count').textContent = `${items.length} devis en attente`;
+}
+
+// ============================================================
+// ACHATS
+// ============================================================
+async function loadPurchases(from, to) {
+  const filter = `OrderType eq 'Invoice' and OrderDirection eq 'Cost' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
+  const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
+
+  let totalPurchase = 0;
+  const bySupplier = {};
+  const byProject = {};
+  const byCategory = {};
+
+  for (const item of items) {
+    const htva = item.TotalExcl || 0;
+    totalPurchase += htva;
+
+    // Fournisseur
+    const supplier = item.CounterParty?.DisplayName || 'Inconnu';
+    bySupplier[supplier] = (bySupplier[supplier] || 0) + htva;
+
+    // Projet (ExternalProvider ou champ custom)
+    const project = item.ProjectCode || item.ExternalProvider || item.CostCenter || 'Non renseigné';
+    byProject[project] = (byProject[project] || 0) + htva;
+
+    // Catégorie (VentilationCode ou Description)
+    const category = item.VentilationCode || item.Category || item.Description?.substring(0, 30) || 'Non renseigné';
+    byCategory[category] = (byCategory[category] || 0) + htva;
+  }
+
+  document.getElementById('kpi-purchase-total').textContent = fmt(totalPurchase);
+  document.getElementById('kpi-purchase-count').textContent = `${items.length} facture(s) fournisseur`;
+
+  const supplierRows = Object.entries(bySupplier).sort((a, b) => b[1] - a[1]);
+  document.getElementById('count-suppliers').textContent = supplierRows.length;
+  renderTable('table-suppliers', supplierRows, ([name, amount]) => `
+    <tr><td class="name-col">${name}</td><td>${fmt(amount)}</td></tr>
+  `);
+
+  const projectRows = Object.entries(byProject).sort((a, b) => b[1] - a[1]);
+  document.getElementById('count-projects').textContent = projectRows.length;
+  renderTable('table-projects', projectRows, ([name, amount]) => `
+    <tr><td class="name-col">${name}</td><td>${fmt(amount)}</td></tr>
+  `);
+
+  const categoryRows = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
+  document.getElementById('count-categories').textContent = categoryRows.length;
+  renderTable('table-categories', categoryRows, ([name, amount]) => `
+    <tr><td class="name-col">${name}</td><td>${fmt(amount)}</td></tr>
+  `);
+}
+
+// ============================================================
+// ORCHESTRATEUR
+// ============================================================
+async function loadAll() {
+  const { from, to } = getPeriodDates();
+  if (!from || !to) {
+    setStatus('error', 'Veuillez sélectionner une période.');
+    return;
+  }
+
+  const refreshBtn = document.getElementById('refreshBtn');
+  refreshBtn.disabled = true;
+  setStatus('loading', `Chargement des données du ${from} au ${to}...`);
+
+  // Reset KPIs
+  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-purchase-total']
+    .forEach(id => { document.getElementById(id).textContent = '...'; });
+
+  try {
+    await Promise.all([
+      loadInvoices(from, to),
+      loadQuotesToInvoice(from, to),
+      loadDevPipeline(from, to),
+      loadPurchases(from, to),
+    ]);
+    setStatus('ok', `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-BE')} - Période ${from} > ${to}`);
+  } catch (err) {
+    setStatus('error', `Erreur : ${err.message}. Vérifiez BILLIT_API_KEY et BILLIT_PARTY_ID dans Netlify.`);
+    console.error(err);
+  } finally {
+    refreshBtn.disabled = false;
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  const now = new Date();
+  document.getElementById('dateFrom').value = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+  document.getElementById('dateTo').value = now.toISOString().split('T')[0];
+  loadAll();
+});
+</script>
+</body>
+</html>
