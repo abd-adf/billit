@@ -414,7 +414,7 @@
   <!-- ============ VENTES ============ -->
   <div class="section-title"><span class="section-accent">01</span> VENTES</div>
 
-  <!-- KPIs majeurs -->
+  <!-- KPIs majeurs - ligne 1 -->
   <div class="kpi-grid-major">
     <div class="kpi-card major" style="--accent-color: var(--accent4)">
       <div class="kpi-label">Landing 2026 (facturé + à facturer)</div>
@@ -428,6 +428,26 @@
         <div class="kpi-value" id="kpi-gross-margin-pct" style="font-size:28px; color:var(--success);">--</div>
       </div>
       <div class="kpi-sub" id="kpi-gross-margin-sub"></div>
+    </div>
+  </div>
+
+  <!-- KPIs majeurs - ligne 2 : projections -->
+  <div class="kpi-grid-major" style="margin-bottom: 16px;">
+    <div class="kpi-card major" style="--accent-color: var(--accent2)">
+      <div class="kpi-label">Marge projetée 2026 (Landing × taux actuel)</div>
+      <div style="display:flex; align-items:baseline; gap:16px;">
+        <div class="kpi-value" id="kpi-margin-projected">--</div>
+        <div class="kpi-value" id="kpi-margin-projected-pct" style="font-size:28px; color:var(--accent2);">--</div>
+      </div>
+      <div class="kpi-sub" id="kpi-margin-projected-sub"></div>
+    </div>
+    <div class="kpi-card major" style="--accent-color: var(--warning)">
+      <div class="kpi-label">Marge projetée 2026 (Landing × 60% — taux prudent)</div>
+      <div style="display:flex; align-items:baseline; gap:16px;">
+        <div class="kpi-value" id="kpi-margin-conservative">--</div>
+        <div class="kpi-value" style="font-size:28px; color:var(--warning);">60%</div>
+      </div>
+      <div class="kpi-sub" id="kpi-margin-conservative-sub"></div>
     </div>
   </div>
 
@@ -972,7 +992,7 @@ async function loadAll() {
   setStatus('loading', `Chargement des données du ${from} au ${to}...`);
 
   // Reset KPIs
-  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-gross-margin', 'kpi-gross-margin-pct', 'kpi-purchase-total']
+  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-gross-margin', 'kpi-gross-margin-pct', 'kpi-margin-projected', 'kpi-margin-projected-pct', 'kpi-margin-conservative', 'kpi-purchase-total']
     .forEach(id => { document.getElementById(id).textContent = '...'; });
 
   try {
@@ -998,6 +1018,15 @@ async function loadAll() {
     document.getElementById('kpi-gross-margin').textContent = fmt(grossMargin);
     document.getElementById('kpi-gross-margin-pct').textContent = `${grossPct.toFixed(1)}%`;
     document.getElementById('kpi-gross-margin-sub').textContent = `${fmt(totalRev)} revenus - ${fmt(totalCost)} achats directs`;
+    // Projections basées sur le Landing 2026
+    const landing2 = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
+    const marginProjected = landing2 * (grossPct / 100);
+    const marginConservative = landing2 * 0.60;
+    document.getElementById('kpi-margin-projected').textContent = fmt(marginProjected);
+    document.getElementById('kpi-margin-projected-pct').textContent = `${grossPct.toFixed(1)}%`;
+    document.getElementById('kpi-margin-projected-sub').textContent = `${fmt(landing2)} landing × ${grossPct.toFixed(1)}% taux actuel`;
+    document.getElementById('kpi-margin-conservative').textContent = fmt(marginConservative);
+    document.getElementById('kpi-margin-conservative-sub').textContent = `${fmt(landing2)} landing × 60% taux prudent`;
     setStatus('ok', `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-BE')} - Période ${from} > ${to}`);
   } catch (err) {
     setStatus('error', `Erreur : ${err.message}. Vérifiez BILLIT_API_KEY et BILLIT_PARTY_ID dans Netlify.`);
