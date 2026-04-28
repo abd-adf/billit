@@ -149,6 +149,12 @@
       gap: 16px;
       margin-bottom: 28px;
     }
+    .kpi-grid-major {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
 
     .kpi-card {
       background: var(--surface);
@@ -158,6 +164,9 @@
       transition: border-color 0.2s;
       position: relative;
       overflow: hidden;
+    }
+    .kpi-card.major {
+      padding: 28px 32px;
     }
     .kpi-card::before {
       content: '';
@@ -181,6 +190,9 @@
       font-weight: 500;
       color: var(--text);
       line-height: 1;
+    }
+    .kpi-card.major .kpi-value {
+      font-size: 42px;
     }
     .kpi-value.loading { color: var(--border); }
     .kpi-sub {
@@ -346,8 +358,23 @@
 <main class="main">
 
   <!-- ============ VENTES ============ -->
-  <div class="section-title"><span class="section-accent">01</span> VENTES - Facturé à date</div>
+  <div class="section-title"><span class="section-accent">01</span> VENTES</div>
 
+  <!-- KPIs majeurs -->
+  <div class="kpi-grid-major">
+    <div class="kpi-card major" style="--accent-color: var(--accent4)">
+      <div class="kpi-label">Landing 2026 (facturé + à facturer)</div>
+      <div class="kpi-value" id="kpi-landing">--</div>
+      <div class="kpi-sub" id="kpi-landing-sub"></div>
+    </div>
+    <div class="kpi-card major" style="--accent-color: var(--success)">
+      <div class="kpi-label">Marge brute à date (revenus facturés - achats directs)</div>
+      <div class="kpi-value" id="kpi-gross-margin">--</div>
+      <div class="kpi-sub" id="kpi-gross-margin-sub"></div>
+    </div>
+  </div>
+
+  <!-- KPIs secondaires -->
   <div class="kpi-grid">
     <div class="kpi-card" style="--accent-color: var(--accent)">
       <div class="kpi-label">Total HTVA facturé</div>
@@ -364,20 +391,15 @@
       <div class="kpi-value" id="kpi-total-unpaid">--</div>
       <div class="kpi-sub" id="kpi-total-unpaid-count"></div>
     </div>
-    <div class="kpi-card" style="--accent-color: var(--accent2)">
-      <div class="kpi-label">Pipeline dev (attente appro.)</div>
-      <div class="kpi-value" id="kpi-dev">--</div>
-      <div class="kpi-sub" id="kpi-dev-count"></div>
-    </div>
     <div class="kpi-card" style="--accent-color: var(--accent3)">
       <div class="kpi-label">A facturer (devis approuvés)</div>
       <div class="kpi-value" id="kpi-to-invoice">--</div>
       <div class="kpi-sub" id="kpi-to-invoice-count"></div>
     </div>
-    <div class="kpi-card" style="--accent-color: var(--accent4)">
-      <div class="kpi-label">Landing 2026 (facturé + à facturer)</div>
-      <div class="kpi-value" id="kpi-landing">--</div>
-      <div class="kpi-sub" id="kpi-landing-sub"></div>
+    <div class="kpi-card" style="--accent-color: var(--accent2)">
+      <div class="kpi-label">Pipeline dev (attente appro.)</div>
+      <div class="kpi-value" id="kpi-dev">--</div>
+      <div class="kpi-sub" id="kpi-dev-count"></div>
     </div>
   </div>
 
@@ -420,7 +442,7 @@
     </div>
   </div>
 
-  <div class="purchase-grid">
+  <div class="tables-grid">
     <div class="table-card">
       <div class="table-header">
         <span class="table-title">Par fournisseur</span>
@@ -430,19 +452,6 @@
         <table>
           <thead><tr><th>Fournisseur</th><th>HTVA</th></tr></thead>
           <tbody id="table-suppliers"><tr><td colspan="2" class="empty-state">Chargement...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="table-card">
-      <div class="table-header">
-        <span class="table-title">Par projet</span>
-        <span class="table-count" id="count-projects">0</span>
-      </div>
-      <div class="table-scroll">
-        <table>
-          <thead><tr><th>Projet</th><th>HTVA</th></tr></thead>
-          <tbody id="table-projects"><tr><td colspan="2" class="empty-state">Chargement...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -461,17 +470,17 @@
     </div>
   </div>
 
-  <!-- ============ MARGE BRUTE PAR PROJET ============ -->
-  <div class="section-title"><span class="section-accent">03</span> MARGE BRUTE PAR PROJET</div>
+  <!-- ============ MARGE BRUTE PAR CLIENT ============ -->
+  <div class="section-title"><span class="section-accent">03</span> MARGE BRUTE PAR CLIENT</div>
   <div class="tables-grid" style="grid-template-columns: 1fr;">
     <div class="table-card">
       <div class="table-header">
-        <span class="table-title">Revenus facturés vs Achats directs</span>
+        <span class="table-title">Revenus facturés vs Achats directs par client</span>
         <span class="table-count" id="count-margin-projects">0</span>
       </div>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Projet</th><th>Revenus HTVA</th><th>Achats directs</th><th>Marge brute</th><th>%</th></tr></thead>
+          <thead><tr><th>Client</th><th>Revenus HTVA</th><th>Achats directs</th><th>Marge brute</th><th>%</th></tr></thead>
           <tbody id="table-margin"><tr><td colspan="5" class="empty-state">Chargement...</td></tr></tbody>
         </table>
       </div>
@@ -845,7 +854,7 @@ async function loadAll() {
   setStatus('loading', `Chargement des données du ${from} au ${to}...`);
 
   // Reset KPIs
-  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-purchase-total']
+  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-gross-margin', 'kpi-purchase-total']
     .forEach(id => { document.getElementById(id).textContent = '...'; });
 
   try {
@@ -855,12 +864,19 @@ async function loadAll() {
       loadDevPipeline(from, to),
       loadPurchases(from, to),
     ]);
-    // Marge brute par projet
+    // Marge brute par client
     computeMargin();
     // Landing 2026 = facturé + à facturer (ToInvoice nets des acomptes)
     const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
     document.getElementById('kpi-landing').textContent = fmt(landing);
     document.getElementById('kpi-landing-sub').textContent = `${fmt(window._totalInvoiced || 0)} facturé + ${fmt(window._totalToInvoice || 0)} à facturer`;
+    // Marge brute à date = revenus facturés - achats directs (projets mappés)
+    const totalRev = Object.values(window._revenueByProject || {}).reduce((a, b) => a + b, 0);
+    const totalCost = Object.values(window._costByProject || {}).reduce((a, b) => a + b, 0);
+    const grossMargin = totalRev - totalCost;
+    const grossPct = totalRev > 0 ? (grossMargin / totalRev * 100) : 0;
+    document.getElementById('kpi-gross-margin').textContent = fmt(grossMargin);
+    document.getElementById('kpi-gross-margin-sub').textContent = `${grossPct.toFixed(1)}% — ${fmt(totalRev)} revenus - ${fmt(totalCost)} achats directs`;
     setStatus('ok', `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-BE')} - Période ${from} > ${to}`);
   } catch (err) {
     setStatus('error', `Erreur : ${err.message}. Vérifiez BILLIT_API_KEY et BILLIT_PARTY_ID dans Netlify.`);
