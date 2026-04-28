@@ -423,7 +423,10 @@
     </div>
     <div class="kpi-card major" style="--accent-color: var(--success)">
       <div class="kpi-label">Marge brute à date (revenus facturés - achats directs)</div>
-      <div class="kpi-value" id="kpi-gross-margin">--</div>
+      <div style="display:flex; align-items:baseline; gap:16px;">
+        <div class="kpi-value" id="kpi-gross-margin">--</div>
+        <div class="kpi-value" id="kpi-gross-margin-pct" style="font-size:28px; color:var(--success);">--</div>
+      </div>
       <div class="kpi-sub" id="kpi-gross-margin-sub"></div>
     </div>
   </div>
@@ -969,7 +972,7 @@ async function loadAll() {
   setStatus('loading', `Chargement des données du ${from} au ${to}...`);
 
   // Reset KPIs
-  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-gross-margin', 'kpi-purchase-total']
+  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-gross-margin', 'kpi-gross-margin-pct', 'kpi-purchase-total']
     .forEach(id => { document.getElementById(id).textContent = '...'; });
 
   try {
@@ -993,7 +996,8 @@ async function loadAll() {
     const grossMargin = totalRev - totalCost;
     const grossPct = totalRev > 0 ? (grossMargin / totalRev * 100) : 0;
     document.getElementById('kpi-gross-margin').textContent = fmt(grossMargin);
-    document.getElementById('kpi-gross-margin-sub').textContent = `${grossPct.toFixed(1)}% — ${fmt(totalRev)} revenus - ${fmt(totalCost)} achats directs`;
+    document.getElementById('kpi-gross-margin-pct').textContent = `${grossPct.toFixed(1)}%`;
+    document.getElementById('kpi-gross-margin-sub').textContent = `${fmt(totalRev)} revenus - ${fmt(totalCost)} achats directs`;
     setStatus('ok', `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-BE')} - Période ${from} > ${to}`);
   } catch (err) {
     setStatus('error', `Erreur : ${err.message}. Vérifiez BILLIT_API_KEY et BILLIT_PARTY_ID dans Netlify.`);
