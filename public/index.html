@@ -621,7 +621,7 @@ async function loadQuotesToInvoice(from, to) {
   const acompteParDevis = {};
   for (const inv of invoices) {
     const title = inv.OrderTitle || '';
-    const match = title.match(/acompte pour devis\s+(\w+)/i);
+    const match = title.match(/(?:acompte pour devis|voorschot voor offerte)\s+(\w+)/i);
     if (match) {
       const num = match[1];
       acompteParDevis[num] = (acompteParDevis[num] || 0) + (inv.TotalExcl || 0);
