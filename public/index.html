@@ -226,6 +226,19 @@
       background: var(--surface);
     }
     .table-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .btn-csv {
+      padding: 4px 10px;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-csv:hover { color: var(--accent); border-color: var(--accent); }
     .table-count {
       font-size: 11px;
       color: var(--muted);
@@ -505,6 +518,7 @@
     <div class="table-header">
       <span class="table-title">Ventes totales par client (facturé + à facturer)</span>
       <span class="table-count" id="count-chart-clients">0</span>
+      <button class="btn-csv" onclick="exportCSV('sales-by-client')">Export CSV</button>
     </div>
     <div class="chart-inner">
       <div class="chart-canvas-wrap">
@@ -560,6 +574,7 @@
       <div class="table-header">
         <span class="table-title">Revenus facturés vs Achats directs par client</span>
         <span class="table-count" id="count-margin-projects">0</span>
+        <button class="btn-csv" onclick="exportCSV('margin-by-client')">Export CSV</button>
       </div>
       <div class="table-scroll">
         <table>
@@ -844,9 +859,35 @@ const SUPPLIER_CATEGORY = {
 // Stockage global pour le calcul de marge
 window._revenueByProject = {};
 window._costByProject = {};
+window._exportSalesByClient = [];
+window._exportMarginByClient = [];
 
 // Palette de couleurs pour le camembert
 const PIE_COLORS = ['#eb5523','#f37221','#ffa500','#e03010','#2d8a4e','#42a5f5','#888888','#1a1a1a','#f5c842','#6ab04c'];
+
+function exportCSV(type) {
+  const { from, to } = getPeriodDates();
+  const period = `${from}_${to}`;
+  let rows, filename;
+  if (type === 'sales-by-client') {
+    rows = window._exportSalesByClient || [];
+    filename = `ventes-par-client_${period}.csv`;
+  } else {
+    rows = window._exportMarginByClient || [];
+    filename = `marge-par-client_${period}.csv`;
+  }
+  if (!rows.length) return;
+  const headers = Object.keys(rows[0]);
+  const csv = [
+    headers.join(';'),
+    ...rows.map(r => headers.map(h => String(r[h]).replace(/\./g, ',')).join(';'))
+  ].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
 
 let _pieChart = null;
 function renderPieChart() {
@@ -859,12 +900,13 @@ function renderPieChart() {
   for (const [c, v] of Object.entries(toInvoice)) merged[c] = (merged[c] || 0) + v;
 
   const sorted = Object.entries(merged).sort((a, b) => b[1] - a[1]);
+  const total = sorted.reduce((s, [, v]) => s + v, 0);
+  window._exportSalesByClient = sorted.map(([name, val]) => ({ Client: name, 'Total HTVA (€)': val, '% du total': total > 0 ? (val/total*100).toFixed(1) : '0' }));
   document.getElementById('count-chart-clients').textContent = sorted.length;
 
   const labels = sorted.map(([c]) => c);
   const values = sorted.map(([, v]) => v);
   const colors = labels.map((_, i) => PIE_COLORS[i % PIE_COLORS.length]);
-  const total = values.reduce((a, b) => a + b, 0);
 
   // Légende
   const legend = document.getElementById('chart-legend');
@@ -910,6 +952,7 @@ function computeMargin() {
     rows.push([p, rev, cost, margin, pct]);
   }
   rows.sort((a, b) => b[3] - a[3]);
+  window._exportMarginByClient = rows.map(([p, rev, cost, margin, pct]) => ({ Client: p, 'Revenus HTVA (€)': rev, 'Achats directs (€)': cost, 'Marge brute (€)': margin, 'Marge %': pct.toFixed(1) }));
   document.getElementById('count-margin-projects').textContent = rows.length;
   renderTable('table-margin', rows, ([p, rev, cost, margin, pct]) => `
     <tr>
