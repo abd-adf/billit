@@ -947,12 +947,6 @@ async function loadPurchases(from, to) {
     <tr><td class="name-col">${name}</td><td>${fmt(amount)}</td></tr>
   `);
 
-  const projectRows = Object.entries(byProject).sort((a, b) => b[1] - a[1]);
-  document.getElementById('count-projects').textContent = projectRows.length;
-  renderTable('table-projects', projectRows, ([name, amount]) => `
-    <tr><td class="name-col">${name}</td><td>${fmt(amount)}</td></tr>
-  `);
-
   const categoryRows = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
   document.getElementById('count-categories').textContent = categoryRows.length;
   renderTable('table-categories', categoryRows, ([name, amount]) => `
