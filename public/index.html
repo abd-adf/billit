@@ -369,6 +369,69 @@
     .badge-paid { background: #e8f5ee; color: var(--success); }
     .badge-unpaid { background: #fff3e0; color: var(--warning); }
 
+    /* ---- OBJECTIVES ---- */
+    .objectives-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .obj-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .obj-card-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      text-align: center;
+    }
+    .obj-card.active .obj-card-header {
+      background: #fff8f5;
+      color: var(--accent);
+    }
+    .obj-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border);
+      gap: 8px;
+    }
+    .obj-row:last-child { border-bottom: none; }
+    .obj-row-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; flex-shrink: 0; }
+    .obj-row-target { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); }
+    .obj-row-pct {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 5px;
+      background: var(--surface2);
+      color: var(--muted);
+      min-width: 56px;
+      text-align: right;
+    }
+    .obj-row-pct.over { background: #e8f5ee; color: var(--success); }
+    .obj-row-pct.near { background: #fff3e0; color: var(--warning); }
+    .obj-row-pct.low { background: #fff0ee; color: var(--accent3); }
+    .obj-progress {
+      height: 4px;
+      background: var(--border);
+      margin: 0 18px 12px;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .obj-progress-bar {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
     /* ---- SCROLL ---- */
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -568,8 +631,65 @@
     </div>
   </div>
 
+  <!-- ============ OBJECTIFS ============ -->
+  <div class="section-title"><span class="section-accent">03</span> OBJECTIFS 2026</div>
+  <div class="objectives-grid">
+
+    <!-- Scénario 2026 -->
+    <div class="obj-card active" id="obj-card-s1">
+      <div class="obj-card-header">2026</div>
+      <div class="obj-row">
+        <span class="obj-row-label">CA objectif</span>
+        <span class="obj-row-target" id="obj-s1-ca-target">381 538 €</span>
+        <span class="obj-row-pct" id="obj-s1-ca-pct">--%</span>
+      </div>
+      <div class="obj-progress"><div class="obj-progress-bar" id="obj-s1-ca-bar" style="width:0%;background:var(--accent)"></div></div>
+      <div class="obj-row">
+        <span class="obj-row-label">MB objectif</span>
+        <span class="obj-row-target" id="obj-s1-mb-target">248 000 €</span>
+        <span class="obj-row-pct" id="obj-s1-mb-pct">--%</span>
+      </div>
+      <div class="obj-progress"><div class="obj-progress-bar" id="obj-s1-mb-bar" style="width:0%;background:var(--success)"></div></div>
+    </div>
+
+    <!-- Scénario 2026 BIS -->
+    <div class="obj-card" id="obj-card-s2">
+      <div class="obj-card-header">2026 BIS</div>
+      <div class="obj-row">
+        <span class="obj-row-label">CA objectif</span>
+        <span class="obj-row-target" id="obj-s2-ca-target">416 129 €</span>
+        <span class="obj-row-pct" id="obj-s2-ca-pct">--%</span>
+      </div>
+      <div class="obj-progress"><div class="obj-progress-bar" id="obj-s2-ca-bar" style="width:0%;background:var(--accent)"></div></div>
+      <div class="obj-row">
+        <span class="obj-row-label">MB objectif</span>
+        <span class="obj-row-target" id="obj-s2-mb-target">258 000 €</span>
+        <span class="obj-row-pct" id="obj-s2-mb-pct">--%</span>
+      </div>
+      <div class="obj-progress"><div class="obj-progress-bar" id="obj-s2-mb-bar" style="width:0%;background:var(--success)"></div></div>
+    </div>
+
+    <!-- Scénario 2026 TER -->
+    <div class="obj-card" id="obj-card-s3">
+      <div class="obj-card-header">2026_TER</div>
+      <div class="obj-row">
+        <span class="obj-row-label">CA objectif</span>
+        <span class="obj-row-target" id="obj-s3-ca-target">446 774 €</span>
+        <span class="obj-row-pct" id="obj-s3-ca-pct">--%</span>
+      </div>
+      <div class="obj-progress"><div class="obj-progress-bar" id="obj-s3-ca-bar" style="width:0%;background:var(--accent)"></div></div>
+      <div class="obj-row">
+        <span class="obj-row-label">MB objectif</span>
+        <span class="obj-row-target" id="obj-s3-mb-target">277 000 €</span>
+        <span class="obj-row-pct" id="obj-s3-mb-pct">--%</span>
+      </div>
+      <div class="obj-progress"><div class="obj-progress-bar" id="obj-s3-mb-bar" style="width:0%;background:var(--success)"></div></div>
+    </div>
+
+  </div>
+
   <!-- ============ MARGE BRUTE PAR CLIENT ============ -->
-  <div class="section-title"><span class="section-accent">03</span> MARGE BRUTE PAR CLIENT</div>
+  <div class="section-title"><span class="section-accent">04</span> MARGE BRUTE PAR CLIENT</div>
   <div class="tables-grid" style="grid-template-columns: 1fr;">
     <div class="table-card">
       <div class="table-header">
@@ -1014,6 +1134,57 @@ async function loadPurchases(from, to) {
 }
 
 // ============================================================
+// OBJECTIFS
+// ============================================================
+const SCENARIOS = [
+  { id: 's1', label: '2026',     ca: 381538, mb: 248000 },
+  { id: 's2', label: '2026 BIS', ca: 416129, mb: 258000 },
+  { id: 's3', label: '2026 TER', ca: 446774, mb: 277000 },
+];
+
+function pctClass(pct) {
+  if (pct >= 100) return 'over';
+  if (pct >= 70)  return 'near';
+  return 'low';
+}
+function pctColor(pct) {
+  if (pct >= 100) return 'var(--success)';
+  if (pct >= 70)  return 'var(--warning)';
+  return 'var(--accent3)';
+}
+
+function computeObjectives() {
+  // CA = Landing 2026 (facturé + à facturer)
+  const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
+  // MB = marge brute projetée au taux actuel
+  const totalRev = Object.values(window._revenueByProject || {}).reduce((a, b) => a + b, 0);
+  const totalCost = Object.values(window._costByProject || {}).reduce((a, b) => a + b, 0);
+  const grossMargin = totalRev - totalCost;
+  const grossPct = totalRev > 0 ? (grossMargin / totalRev) : 0;
+  const mbProjected = landing * grossPct;
+
+  for (const s of SCENARIOS) {
+    const caPct = s.ca > 0 ? Math.min((landing / s.ca) * 100, 150) : 0;
+    const mbPct = s.mb > 0 ? Math.min((mbProjected / s.mb) * 100, 150) : 0;
+
+    const caEl = document.getElementById(`obj-${s.id}-ca-pct`);
+    const mbEl = document.getElementById(`obj-${s.id}-mb-pct`);
+    const caBar = document.getElementById(`obj-${s.id}-ca-bar`);
+    const mbBar = document.getElementById(`obj-${s.id}-mb-bar`);
+
+    caEl.textContent = `${caPct.toFixed(1)}%`;
+    caEl.className = 'obj-row-pct ' + pctClass(caPct);
+    caBar.style.width = `${Math.min(caPct, 100)}%`;
+    caBar.style.background = pctColor(caPct);
+
+    mbEl.textContent = `${mbPct.toFixed(1)}%`;
+    mbEl.className = 'obj-row-pct ' + pctClass(mbPct);
+    mbBar.style.width = `${Math.min(mbPct, 100)}%`;
+    mbBar.style.background = pctColor(mbPct);
+  }
+}
+
+// ============================================================
 // ORCHESTRATEUR
 // ============================================================
 async function loadAll() {
@@ -1042,6 +1213,8 @@ async function loadAll() {
     computeMargin();
     // Camembert ventes par client
     renderPieChart();
+    // Objectifs scénarios
+    computeObjectives();
     // Landing 2026 = facturé + à facturer (ToInvoice nets des acomptes)
     const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
     document.getElementById('kpi-landing').textContent = fmt(landing);
