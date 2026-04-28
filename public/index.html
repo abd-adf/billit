@@ -461,8 +461,26 @@
     </div>
   </div>
 
+  <!-- ============ MARGE BRUTE PAR PROJET ============ -->
+  <div class="section-title"><span class="section-accent">03</span> MARGE BRUTE PAR PROJET</div>
+  <div class="tables-grid" style="grid-template-columns: 1fr;">
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-title">Revenus facturés vs Achats directs</span>
+        <span class="table-count" id="count-margin-projects">0</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Projet</th><th>Revenus HTVA</th><th>Achats directs</th><th>Marge brute</th><th>%</th></tr></thead>
+          <tbody id="table-margin"><tr><td colspan="5" class="empty-state">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 </main>
 
+<script src="projects-data.js"></script>
 <script>
 // ============================================================
 // CONFIG
@@ -583,6 +601,7 @@ async function loadInvoices(from, to) {
   let paidCount = 0, unpaidCount = 0;
   const byClient = {};
 
+  window._revenueByProject = {};
   for (const item of items) {
     const htva = item.TotalExcl || 0;
     totalInvoiced += htva;
@@ -591,6 +610,10 @@ async function loadInvoices(from, to) {
 
     const client = item.CounterParty?.DisplayName || 'Inconnu';
     byClient[client] = (byClient[client] || 0) + htva;
+
+    // Marge par projet
+    const proj = (typeof PROJECTS_DATA !== 'undefined') ? PROJECTS_DATA.sales[item.OrderNumber] : null;
+    if (proj) window._revenueByProject[proj] = (window._revenueByProject[proj] || 0) + htva;
   }
 
   window._totalInvoiced = totalInvoiced;
@@ -724,6 +747,36 @@ const SUPPLIER_CATEGORY = {
   'ride to unite': 'Dons',
 };
 
+// Stockage global pour le calcul de marge
+window._revenueByProject = {};
+window._costByProject = {};
+
+function computeMargin() {
+  const projects = new Set([
+    ...Object.keys(window._revenueByProject),
+    ...Object.keys(window._costByProject),
+  ]);
+  const rows = [];
+  for (const p of projects) {
+    const rev = window._revenueByProject[p] || 0;
+    const cost = window._costByProject[p] || 0;
+    const margin = rev - cost;
+    const pct = rev > 0 ? (margin / rev * 100) : 0;
+    rows.push([p, rev, cost, margin, pct]);
+  }
+  rows.sort((a, b) => b[3] - a[3]);
+  document.getElementById('count-margin-projects').textContent = rows.length;
+  renderTable('table-margin', rows, ([p, rev, cost, margin, pct]) => `
+    <tr>
+      <td class="name-col">${p}</td>
+      <td>${fmt(rev)}</td>
+      <td>${fmt(cost)}</td>
+      <td class="${margin >= 0 ? 'amount-pos' : 'amount-neg'}">${fmt(margin)}</td>
+      <td class="${pct >= 0 ? 'amount-pos' : 'amount-neg'}">${pct.toFixed(1)}%</td>
+    </tr>
+  `);
+}
+
 async function loadPurchases(from, to) {
   const filter = `OrderType eq 'Invoice' and OrderDirection eq 'Cost' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
   const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
@@ -733,6 +786,7 @@ async function loadPurchases(from, to) {
   const byProject = {};
   const byCategory = {};
 
+  window._costByProject = {};
   for (const item of items) {
     const htva = item.TotalExcl || 0;
     totalPurchase += htva;
@@ -748,6 +802,10 @@ async function loadPurchases(from, to) {
     // Catégorie via mapping fournisseur
     const category = SUPPLIER_CATEGORY[supplier] || '⚠ Non renseigné';
     byCategory[category] = (byCategory[category] || 0) + htva;
+
+    // Marge par projet
+    const proj = (typeof PROJECTS_DATA !== 'undefined') ? PROJECTS_DATA.purchases[item.OrderNumber] : null;
+    if (proj) window._costByProject[proj] = (window._costByProject[proj] || 0) + htva;
   }
 
   document.getElementById('kpi-purchase-total').textContent = fmt(totalPurchase);
@@ -797,6 +855,8 @@ async function loadAll() {
       loadDevPipeline(from, to),
       loadPurchases(from, to),
     ]);
+    // Marge brute par projet
+    computeMargin();
     // Landing 2026 = facturé + à facturer (ToInvoice nets des acomptes)
     const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
     document.getElementById('kpi-landing').textContent = fmt(landing);
