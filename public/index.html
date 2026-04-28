@@ -609,20 +609,36 @@ async function loadInvoices(from, to) {
 // VENTES - DEVIS A FACTURER
 // ============================================================
 async function loadQuotesToInvoice(from, to) {
-  // Statut "Invoiced" = false et OrderType Quotation avec statut ToInvoice
-  // Billit : OrderType = 'Quotation', Invoiced = false
+  // Charger les devis ToInvoice
   const filter = `OrderType eq 'Offer' and OrderDirection eq 'Income' and OrderStatus eq 'ToInvoice' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
   const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
+
+  // Charger les factures d'acompte (Income invoices) pour déduire les avances déjà facturées
+  const invoiceFilter = `OrderType eq 'Invoice' and OrderDirection eq 'Income' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
+  const invoices = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(invoiceFilter)}`);
+
+  // Construire un map {numeroDevis -> montant acompte} depuis les titres "Acompte pour Devis XXXX"
+  const acompteParDevis = {};
+  for (const inv of invoices) {
+    const title = inv.OrderTitle || '';
+    const match = title.match(/acompte pour devis\s+(\w+)/i);
+    if (match) {
+      const num = match[1];
+      acompteParDevis[num] = (acompteParDevis[num] || 0) + (inv.TotalExcl || 0);
+    }
+  }
 
   let totalToInvoice = 0;
   const byClient = {};
 
   for (const item of items) {
-    if (isAdvance(item)) continue; // On exclut les avances/acomptes
     const htva = item.TotalExcl || 0;
-    totalToInvoice += htva;
+    const acompte = acompteParDevis[item.OrderNumber] || 0;
+    const restant = htva - acompte;
+    if (restant <= 0) continue; // Tout déjà facturé en acomptes
+    totalToInvoice += restant;
     const client = item.CounterParty?.DisplayName || 'Inconnu';
-    byClient[client] = (byClient[client] || 0) + htva;
+    byClient[client] = (byClient[client] || 0) + restant;
   }
 
   document.getElementById('kpi-to-invoice').textContent = fmt(totalToInvoice);
