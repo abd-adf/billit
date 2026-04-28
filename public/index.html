@@ -1156,12 +1156,8 @@ function pctColor(pct) {
 function computeObjectives() {
   // CA = Landing 2026 (facturé + à facturer)
   const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
-  // MB = marge brute projetée au taux actuel
-  const totalRev = Object.values(window._revenueByProject || {}).reduce((a, b) => a + b, 0);
-  const totalCost = Object.values(window._costByProject || {}).reduce((a, b) => a + b, 0);
-  const grossMargin = totalRev - totalCost;
-  const grossPct = totalRev > 0 ? (grossMargin / totalRev) : 0;
-  const mbProjected = landing * grossPct;
+  // MB = marge projetée 2026 (Landing × 60% — taux prudent)
+  const mbProjected = landing * 0.60;
 
   for (const s of SCENARIOS) {
     const caPct = s.ca > 0 ? Math.min((landing / s.ca) * 100, 150) : 0;
