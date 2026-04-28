@@ -517,7 +517,7 @@ async function fetchAllPages(baseEndpoint) {
   // Billit OData - on pagine si besoin (top/skip)
   // Pour commencer on fait un appel avec un top élevé
   const separator = baseEndpoint.includes('?') ? '&' : '?';
-  const url = `${baseEndpoint}${separator}$top=500`;
+  const url = `${baseEndpoint}${separator}$top=100`;
   const data = await billitGet(url);
   return data.Items || data.items || data || [];
 }
