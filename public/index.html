@@ -17,6 +17,7 @@
       --accent: #c8f542;
       --accent2: #42a5f5;
       --accent3: #ff6b6b;
+      --accent4: #c084fc;
       --text: #e8eaf0;
       --muted: #6b7280;
       --success: #4ade80;
@@ -373,6 +374,11 @@
       <div class="kpi-value" id="kpi-to-invoice">--</div>
       <div class="kpi-sub" id="kpi-to-invoice-count"></div>
     </div>
+    <div class="kpi-card" style="--accent-color: var(--accent4)">
+      <div class="kpi-label">Landing 2026 (facturé + à facturer)</div>
+      <div class="kpi-value" id="kpi-landing">--</div>
+      <div class="kpi-sub" id="kpi-landing-sub"></div>
+    </div>
   </div>
 
   <div class="tables-grid">
@@ -587,6 +593,7 @@ async function loadInvoices(from, to) {
     byClient[client] = (byClient[client] || 0) + htva;
   }
 
+  window._totalInvoiced = totalInvoiced;
   document.getElementById('kpi-total-invoiced').textContent = fmt(totalInvoiced);
   document.getElementById('kpi-total-invoiced-count').textContent = `${items.length} facture(s)`;
   document.getElementById('kpi-total-paid').textContent = fmt(totalPaid);
@@ -641,6 +648,7 @@ async function loadQuotesToInvoice(from, to) {
     byClient[client] = (byClient[client] || 0) + restant;
   }
 
+  window._totalToInvoice = totalToInvoice;
   document.getElementById('kpi-to-invoice').textContent = fmt(totalToInvoice);
   document.getElementById('kpi-to-invoice-count').textContent = `${items.length} devis (hors avances)`;
 
@@ -735,7 +743,7 @@ async function loadAll() {
   setStatus('loading', `Chargement des données du ${from} au ${to}...`);
 
   // Reset KPIs
-  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-purchase-total']
+  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-purchase-total']
     .forEach(id => { document.getElementById(id).textContent = '...'; });
 
   try {
@@ -745,6 +753,10 @@ async function loadAll() {
       loadDevPipeline(from, to),
       loadPurchases(from, to),
     ]);
+    // Landing 2026 = facturé + à facturer (ToInvoice nets des acomptes)
+    const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
+    document.getElementById('kpi-landing').textContent = fmt(landing);
+    document.getElementById('kpi-landing-sub').textContent = `${fmt(window._totalInvoiced || 0)} facturé + ${fmt(window._totalToInvoice || 0)} à facturer`;
     setStatus('ok', `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-BE')} - Période ${from} > ${to}`);
   } catch (err) {
     setStatus('error', `Erreur : ${err.message}. Vérifiez BILLIT_API_KEY et BILLIT_PARTY_ID dans Netlify.`);
