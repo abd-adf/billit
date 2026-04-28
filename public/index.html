@@ -543,7 +543,7 @@
   <!-- KPIs majeurs - ligne 1 -->
   <div class="kpi-grid-major">
     <div class="kpi-card major" style="--accent-color: var(--accent4)">
-      <div class="kpi-label">Landing 2026 (facturé + à facturer)</div>
+      <div class="kpi-label">CA 2026 (facturé + à facturer)</div>
       <div class="kpi-value" id="kpi-landing">--</div>
       <div class="kpi-sub" id="kpi-landing-sub"></div>
     </div>
@@ -560,7 +560,7 @@
   <!-- KPIs majeurs - ligne 2 : projections -->
   <div class="kpi-grid-major" style="margin-bottom: 16px;">
     <div class="kpi-card major" style="--accent-color: var(--accent2)">
-      <div class="kpi-label">Marge projetée 2026 (Landing × taux actuel)</div>
+      <div class="kpi-label">Marge projetée 2026 (CA × taux actuel)</div>
       <div style="display:flex; align-items:baseline; gap:16px;">
         <div class="kpi-value" id="kpi-margin-projected">--</div>
         <div class="kpi-value" id="kpi-margin-projected-pct" style="font-size:28px; color:var(--accent2);">--</div>
@@ -568,7 +568,7 @@
       <div class="kpi-sub" id="kpi-margin-projected-sub"></div>
     </div>
     <div class="kpi-card major" style="--accent-color: var(--warning)">
-      <div class="kpi-label">Marge projetée 2026 (Landing × 60% — taux prudent)</div>
+      <div class="kpi-label">Marge projetée 2026 (CA × 60% — taux prudent)</div>
       <div style="display:flex; align-items:baseline; gap:16px;">
         <div class="kpi-value" id="kpi-margin-conservative">--</div>
         <div class="kpi-value" style="font-size:28px; color:var(--warning);">60%</div>
@@ -1229,9 +1229,9 @@ async function loadAll() {
     const marginConservative = landing2 * 0.60;
     document.getElementById('kpi-margin-projected').textContent = fmt(marginProjected);
     document.getElementById('kpi-margin-projected-pct').textContent = `${grossPct.toFixed(1)}%`;
-    document.getElementById('kpi-margin-projected-sub').textContent = `${fmt(landing2)} landing × ${grossPct.toFixed(1)}% taux actuel`;
+    document.getElementById('kpi-margin-projected-sub').textContent = `${fmt(landing2)} CA × ${grossPct.toFixed(1)}% taux actuel`;
     document.getElementById('kpi-margin-conservative').textContent = fmt(marginConservative);
-    document.getElementById('kpi-margin-conservative-sub').textContent = `${fmt(landing2)} landing × 60% taux prudent`;
+    document.getElementById('kpi-margin-conservative-sub').textContent = `${fmt(landing2)} CA × 60% taux prudent`;
     setStatus('ok', `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-BE')} - Période ${from} > ${to}`);
   } catch (err) {
     setStatus('error', `Erreur : ${err.message}. Vérifiez BILLIT_API_KEY et BILLIT_PARTY_ID dans Netlify.`);
