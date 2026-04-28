@@ -611,13 +611,14 @@ async function loadInvoices(from, to) {
 async function loadQuotesToInvoice(from, to) {
   // Statut "Invoiced" = false et OrderType Quotation avec statut ToInvoice
   // Billit : OrderType = 'Quotation', Invoiced = false
-  const filter = `OrderType eq 'Quotation' and OrderDirection eq 'Income' and Invoiced eq false and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
+  const filter = `OrderType eq 'Quotation' and OrderDirection eq 'Income' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
   const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
 
   let totalToInvoice = 0;
   const byClient = {};
 
   for (const item of items) {
+    if (item.Invoiced) continue; // Déjà facturé
     if (isAdvance(item)) continue; // On exclut les avances/acomptes
     const htva = item.TotalExcl || 0;
     totalToInvoice += htva;
