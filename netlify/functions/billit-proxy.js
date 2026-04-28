@@ -40,7 +40,7 @@ export default async (req, context) => {
     const response = await fetch(billitUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${BILLIT_API_KEY}`,
+        'ApiKey': BILLIT_API_KEY,
         'PartyID': BILLIT_PARTY_ID,
         'Content-Type': 'application/json',
       },
