@@ -6,6 +6,7 @@
   <title>Dashboard Financier</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -267,6 +268,59 @@
     .amount-pos { color: var(--success); }
     .amount-neg { color: var(--accent3); }
 
+    /* ---- CHART ---- */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+    .chart-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 32px;
+      padding: 24px;
+    }
+    .chart-canvas-wrap {
+      position: relative;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+    .chart-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chart-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+    .chart-legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .chart-legend-name {
+      flex: 1;
+      font-family: 'Syne', sans-serif;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .chart-legend-amount {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    @media (max-width: 900px) {
+      .chart-inner { grid-template-columns: 1fr; }
+    }
+
     /* ---- PURCHASE SECTION ---- */
     .purchase-grid {
       display: grid;
@@ -428,6 +482,20 @@
           <tbody id="table-to-invoice-clients"><tr><td colspan="2" class="empty-state">Chargement...</td></tr></tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ CAMEMBERT VENTES PAR CLIENT ============ -->
+  <div class="chart-card">
+    <div class="table-header">
+      <span class="table-title">Ventes totales par client (facturé + à facturer)</span>
+      <span class="table-count" id="count-chart-clients">0</span>
+    </div>
+    <div class="chart-inner">
+      <div class="chart-canvas-wrap">
+        <canvas id="chart-clients"></canvas>
+      </div>
+      <div class="chart-legend" id="chart-legend"></div>
     </div>
   </div>
 
@@ -626,6 +694,7 @@ async function loadInvoices(from, to) {
   }
 
   window._totalInvoiced = totalInvoiced;
+  window._invoicedByClient = byClient;
   document.getElementById('kpi-total-invoiced').textContent = fmt(totalInvoiced);
   document.getElementById('kpi-total-invoiced-count').textContent = `${items.length} facture(s)`;
   document.getElementById('kpi-total-paid').textContent = fmt(totalPaid);
@@ -681,6 +750,7 @@ async function loadQuotesToInvoice(from, to) {
   }
 
   window._totalToInvoice = totalToInvoice;
+  window._toInvoiceByClient = byClient;
   document.getElementById('kpi-to-invoice').textContent = fmt(totalToInvoice);
   document.getElementById('kpi-to-invoice-count').textContent = `${items.length} devis (hors avances)`;
 
@@ -759,6 +829,57 @@ const SUPPLIER_CATEGORY = {
 // Stockage global pour le calcul de marge
 window._revenueByProject = {};
 window._costByProject = {};
+
+// Palette de couleurs pour le camembert
+const PIE_COLORS = ['#c8f542','#42a5f5','#ff6b6b','#c084fc','#fbbf24','#4ade80','#f97316','#38bdf8','#e879f9','#a3e635'];
+
+let _pieChart = null;
+function renderPieChart() {
+  const invoiced = window._invoicedByClient || {};
+  const toInvoice = window._toInvoiceByClient || {};
+
+  // Fusionner les deux sources par client
+  const merged = {};
+  for (const [c, v] of Object.entries(invoiced)) merged[c] = (merged[c] || 0) + v;
+  for (const [c, v] of Object.entries(toInvoice)) merged[c] = (merged[c] || 0) + v;
+
+  const sorted = Object.entries(merged).sort((a, b) => b[1] - a[1]);
+  document.getElementById('count-chart-clients').textContent = sorted.length;
+
+  const labels = sorted.map(([c]) => c);
+  const values = sorted.map(([, v]) => v);
+  const colors = labels.map((_, i) => PIE_COLORS[i % PIE_COLORS.length]);
+  const total = values.reduce((a, b) => a + b, 0);
+
+  // Légende
+  const legend = document.getElementById('chart-legend');
+  legend.innerHTML = sorted.map(([name, val], i) => `
+    <div class="chart-legend-item">
+      <div class="chart-legend-dot" style="background:${colors[i]}"></div>
+      <span class="chart-legend-name">${name}</span>
+      <span class="chart-legend-amount">${fmt(val)} (${total > 0 ? (val/total*100).toFixed(1) : 0}%)</span>
+    </div>
+  `).join('');
+
+  // Chart
+  const ctx = document.getElementById('chart-clients').getContext('2d');
+  if (_pieChart) _pieChart.destroy();
+  _pieChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#13161d', borderWidth: 3, hoverOffset: 8 }] },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${fmt(ctx.parsed)} (${total > 0 ? (ctx.parsed/total*100).toFixed(1) : 0}%)`
+          }
+        }
+      }
+    }
+  });
+}
 
 function computeMargin() {
   const projects = new Set([
@@ -866,6 +987,8 @@ async function loadAll() {
     ]);
     // Marge brute par client
     computeMargin();
+    // Camembert ventes par client
+    renderPieChart();
     // Landing 2026 = facturé + à facturer (ToInvoice nets des acomptes)
     const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
     document.getElementById('kpi-landing').textContent = fmt(landing);
