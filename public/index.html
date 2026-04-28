@@ -680,6 +680,50 @@ async function loadDevPipeline(from, to) {
 // ============================================================
 // ACHATS
 // ============================================================
+// Mapping fournisseur → catégorie d'achat
+// Ajouter ici les nouveaux fournisseurs avec leur catégorie
+const SUPPLIER_CATEGORY = {
+  '55 BIKE DISTRIBUTION': 'Entretien de vélo',
+  'Adfinitas': 'Sous-traitance',
+  'Anthropic,': 'Matériel informatique & abonnements logiciels',
+  'Arts 44': 'Location bâtiment/local/bureau/terrain',
+  'Atlassian company': 'Matériel informatique & abonnements logiciels',
+  'BAXTERSTOREY IRELAND LIMITED': 'Frais de restaurant',
+  'BELGA TRANSLATIONS SRL': 'Sous-traitance',
+  'BETTER': 'Dons',
+  'BIKE MOBILITY SERVICES BELGIUM': 'Location de vélo',
+  'BILLIT': 'Coûts du logiciel de facturation',
+  'BONUM GROUP HOLDING': 'Autres honoraires & frais de consultance',
+  'BREIZH INFLUENCE': 'Sous-traitance',
+  'BRUCOOP sc': 'Sous-traitance',
+  'BUNNYWAY D.O.O.': 'Matériel informatique & abonnements logiciels',
+  'Bureau': 'Petit matériel',
+  'DKV BELGIUM': 'Autres assurances',
+  'De Ryck, Catherine': 'Sous-traitance',
+  'ETWeb': 'Sous-traitance',
+  'EUROSTAR INTERNATIONAL': "Frais de voyage et d'hébergement",
+  'Florent Boucherie Consulting': 'Sous-traitance',
+  'Frais de voyage': "Frais de voyage et d'hébergement",
+  'Hogeschool Gent': 'Frais de marketing et de publicité',
+  'ISABEL': 'Frais financiers divers et frais bancaires',
+  'Language Tooler': 'Matériel informatique & abonnements logiciels',
+  'Léo ARMON-INCANA – EI': 'Sous-traitance',
+  'MEDIAFIN': 'Livres, documentation, formations',
+  'MOBILE VIKINGS': "Frais de téléphonie mobile, de téléphone et d'internet",
+  'NOX': "Frais de voyage et d'hébergement",
+  'Navigo': "Frais de voyage et d'hébergement",
+  'OPENAI IRELAND LIMITED': 'Matériel informatique & abonnements logiciels',
+  'Perplexity AI': 'Matériel informatique & abonnements logiciels',
+  'Restaurant': 'Frais de restaurant',
+  'SERVICE EXTERNE DE PREVENTION ET DE PROTECTION SECUREX-EXTERNE DIENST VOOR PREVENTIE EN BESCHERMING SECUREX': 'Frais de gestion du secrétariat social',
+  'Screaming Frog': 'Matériel informatique & abonnements logiciels',
+  'Soc.Secr.Soc.': 'Frais de gestion du secrétariat social',
+  'TESTI@': 'Matériel informatique & abonnements logiciels',
+  'Ticket Restaurant': 'Chèques-repas/écolos',
+  'netlify': 'Matériel informatique & abonnements logiciels',
+  'ride to unite': 'Dons',
+};
+
 async function loadPurchases(from, to) {
   const filter = `OrderType eq 'Invoice' and OrderDirection eq 'Cost' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
   const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
@@ -701,8 +745,8 @@ async function loadPurchases(from, to) {
     const project = item.ProjectCode || item.ExternalProvider || item.CostCenter || 'Non renseigné';
     byProject[project] = (byProject[project] || 0) + htva;
 
-    // Catégorie (VentilationCode ou Description)
-    const category = item.VentilationCode || item.Category || item.Description?.substring(0, 30) || 'Non renseigné';
+    // Catégorie via mapping fournisseur
+    const category = SUPPLIER_CATEGORY[supplier] || '⚠ Non renseigné';
     byCategory[category] = (byCategory[category] || 0) + htva;
   }
 
