@@ -484,55 +484,21 @@
   <div class="section-title"><span class="section-accent">01</span> OBJECTIFS 2026</div>
   <div class="objectives-grid">
 
-    <!-- Scénario 2026 -->
+    <!-- Scénario unique 2026 -->
     <div class="obj-card active" id="obj-card-s1">
       <div class="obj-card-header">2026</div>
       <div class="obj-row">
         <span class="obj-row-label">CA objectif</span>
-        <span class="obj-row-target" id="obj-s1-ca-target">381 538 €</span>
+        <span class="obj-row-target" id="obj-s1-ca-target">420 000 €</span>
         <span class="obj-row-pct" id="obj-s1-ca-pct">--%</span>
       </div>
       <div class="obj-progress"><div class="obj-progress-bar" id="obj-s1-ca-bar" style="width:0%;background:var(--accent)"></div></div>
       <div class="obj-row">
         <span class="obj-row-label">MB objectif</span>
-        <span class="obj-row-target" id="obj-s1-mb-target">248 000 €</span>
+        <span class="obj-row-target" id="obj-s1-mb-target">260 000 €</span>
         <span class="obj-row-pct" id="obj-s1-mb-pct">--%</span>
       </div>
       <div class="obj-progress"><div class="obj-progress-bar" id="obj-s1-mb-bar" style="width:0%;background:var(--success)"></div></div>
-    </div>
-
-    <!-- Scénario 2026 BIS -->
-    <div class="obj-card" id="obj-card-s2">
-      <div class="obj-card-header">2026 BIS</div>
-      <div class="obj-row">
-        <span class="obj-row-label">CA objectif</span>
-        <span class="obj-row-target" id="obj-s2-ca-target">416 129 €</span>
-        <span class="obj-row-pct" id="obj-s2-ca-pct">--%</span>
-      </div>
-      <div class="obj-progress"><div class="obj-progress-bar" id="obj-s2-ca-bar" style="width:0%;background:var(--accent)"></div></div>
-      <div class="obj-row">
-        <span class="obj-row-label">MB objectif</span>
-        <span class="obj-row-target" id="obj-s2-mb-target">258 000 €</span>
-        <span class="obj-row-pct" id="obj-s2-mb-pct">--%</span>
-      </div>
-      <div class="obj-progress"><div class="obj-progress-bar" id="obj-s2-mb-bar" style="width:0%;background:var(--success)"></div></div>
-    </div>
-
-    <!-- Scénario 2026 TER -->
-    <div class="obj-card" id="obj-card-s3">
-      <div class="obj-card-header">2026_TER</div>
-      <div class="obj-row">
-        <span class="obj-row-label">CA objectif</span>
-        <span class="obj-row-target" id="obj-s3-ca-target">446 774 €</span>
-        <span class="obj-row-pct" id="obj-s3-ca-pct">--%</span>
-      </div>
-      <div class="obj-progress"><div class="obj-progress-bar" id="obj-s3-ca-bar" style="width:0%;background:var(--accent)"></div></div>
-      <div class="obj-row">
-        <span class="obj-row-label">MB objectif</span>
-        <span class="obj-row-target" id="obj-s3-mb-target">277 000 €</span>
-        <span class="obj-row-pct" id="obj-s3-mb-pct">--%</span>
-      </div>
-      <div class="obj-progress"><div class="obj-progress-bar" id="obj-s3-mb-bar" style="width:0%;background:var(--success)"></div></div>
     </div>
 
   </div>
@@ -1137,9 +1103,7 @@ async function loadPurchases(from, to) {
 // OBJECTIFS
 // ============================================================
 const SCENARIOS = [
-  { id: 's1', label: '2026',     ca: 381538, mb: 248000 },
-  { id: 's2', label: '2026 BIS', ca: 416129, mb: 258000 },
-  { id: 's3', label: '2026 TER', ca: 446774, mb: 277000 },
+  { id: 's1', label: '2026', ca: 420000, mb: 260000 },
 ];
 
 function pctClass(pct) {
