@@ -382,47 +382,58 @@
       border-radius: 10px;
       overflow: hidden;
     }
-    .obj-card-header {
-      padding: 12px 18px;
+    .obj-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .obj-table thead tr {
       border-bottom: 1px solid var(--border);
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-      text-align: center;
     }
-    .obj-card.active .obj-card-header {
-      background: #fff8f5;
-      color: var(--accent);
-    }
-    .obj-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 18px;
-      border-bottom: 1px solid var(--border);
-      gap: 8px;
-    }
-    .obj-row:last-child { border-bottom: none; }
-    .obj-row-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; flex-shrink: 0; }
-    .obj-row-target { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); }
-    .obj-row-pct {
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 5px;
-      background: var(--surface2);
+    .obj-table th {
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 600;
       color: var(--muted);
-      min-width: 56px;
+      text-transform: uppercase;
       text-align: right;
     }
-    .obj-row-pct.over { background: #e8f5ee; color: var(--success); }
-    .obj-row-pct.near { background: #fff3e0; color: var(--warning); }
-    .obj-row-pct.low { background: #fff0ee; color: var(--accent3); }
+    .obj-table th:first-child { text-align: left; }
+    .obj-table td {
+      padding: 12px 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+    .obj-table tr:last-child td { border-bottom: none; }
+    .obj-table td:first-child {
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      text-align: left;
+    }
+    .obj-table td.obj-adate { color: var(--text); font-weight: 700; }
+    .obj-table td.obj-target { color: var(--muted); }
+    .obj-pct {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--surface2);
+      color: var(--muted);
+      margin-left: 6px;
+    }
+    .obj-pct.over { background: #e8f5ee; color: var(--success); }
+    .obj-pct.near { background: #fff3e0; color: var(--warning); }
+    .obj-pct.low { background: #fff0ee; color: var(--accent3); }
     .obj-progress {
-      height: 4px;
+      height: 3px;
       background: var(--border);
-      margin: 0 18px 12px;
+      margin: 4px 0 0;
       border-radius: 2px;
       overflow: hidden;
     }
@@ -486,19 +497,35 @@
 
     <!-- Scénario unique 2026 -->
     <div class="obj-card active" id="obj-card-s1">
-      <div class="obj-card-header">2026</div>
-      <div class="obj-row">
-        <span class="obj-row-label">CA objectif</span>
-        <span class="obj-row-target" id="obj-s1-ca-target">420 000 €</span>
-        <span class="obj-row-pct" id="obj-s1-ca-pct">--%</span>
-      </div>
-      <div class="obj-progress"><div class="obj-progress-bar" id="obj-s1-ca-bar" style="width:0%;background:var(--accent)"></div></div>
-      <div class="obj-row">
-        <span class="obj-row-label">MB objectif</span>
-        <span class="obj-row-target" id="obj-s1-mb-target">260 000 €</span>
-        <span class="obj-row-pct" id="obj-s1-mb-pct">--%</span>
-      </div>
-      <div class="obj-progress"><div class="obj-progress-bar" id="obj-s1-mb-bar" style="width:0%;background:var(--success)"></div></div>
+      <table class="obj-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>A date</th>
+            <th>Objectif 2026</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>CA</td>
+            <td class="obj-adate">
+              <span id="obj-s1-ca-adate">--</span>
+              <span class="obj-pct" id="obj-s1-ca-pct">--%</span>
+              <div class="obj-progress"><div class="obj-progress-bar" id="obj-s1-ca-bar" style="width:0%;background:var(--accent)"></div></div>
+            </td>
+            <td class="obj-target" id="obj-s1-ca-target">420 000 €</td>
+          </tr>
+          <tr>
+            <td>MB</td>
+            <td class="obj-adate">
+              <span id="obj-s1-mb-adate">--</span>
+              <span class="obj-pct" id="obj-s1-mb-pct">--%</span>
+              <div class="obj-progress"><div class="obj-progress-bar" id="obj-s1-mb-bar" style="width:0%;background:var(--success)"></div></div>
+            </td>
+            <td class="obj-target" id="obj-s1-mb-target">260 000 €</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
   </div>
@@ -1127,18 +1154,22 @@ function computeObjectives() {
     const caPct = s.ca > 0 ? Math.min((landing / s.ca) * 100, 150) : 0;
     const mbPct = s.mb > 0 ? Math.min((mbProjected / s.mb) * 100, 150) : 0;
 
+    const caAdate = document.getElementById(`obj-${s.id}-ca-adate`);
+    const mbAdate = document.getElementById(`obj-${s.id}-mb-adate`);
     const caEl = document.getElementById(`obj-${s.id}-ca-pct`);
     const mbEl = document.getElementById(`obj-${s.id}-mb-pct`);
     const caBar = document.getElementById(`obj-${s.id}-ca-bar`);
     const mbBar = document.getElementById(`obj-${s.id}-mb-bar`);
 
+    caAdate.textContent = fmt(landing);
     caEl.textContent = `${caPct.toFixed(1)}%`;
-    caEl.className = 'obj-row-pct ' + pctClass(caPct);
+    caEl.className = 'obj-pct ' + pctClass(caPct);
     caBar.style.width = `${Math.min(caPct, 100)}%`;
     caBar.style.background = pctColor(caPct);
 
+    mbAdate.textContent = fmt(mbProjected);
     mbEl.textContent = `${mbPct.toFixed(1)}%`;
-    mbEl.className = 'obj-row-pct ' + pctClass(mbPct);
+    mbEl.className = 'obj-pct ' + pctClass(mbPct);
     mbBar.style.width = `${Math.min(mbPct, 100)}%`;
     mbBar.style.background = pctColor(mbPct);
   }
