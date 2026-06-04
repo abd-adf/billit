@@ -550,21 +550,19 @@
     </div>
   </div>
 
-  <!-- KPIs majeurs - ligne 2 : projections -->
-  <div class="kpi-grid-major" style="margin-bottom: 16px;">
-    <div class="kpi-card major" style="--accent-color: var(--warning)">
-      <div class="kpi-label">Marge projetée 2026 (CA × 60% — taux prudent)</div>
-      <div style="display:flex; align-items:baseline; gap:16px;">
-        <div class="kpi-value" id="kpi-margin-conservative">--</div>
-        <div class="kpi-value" style="font-size:28px; color:var(--warning);">60%</div>
-      </div>
-      <div class="kpi-sub" id="kpi-margin-conservative-sub"></div>
-    </div>
-    <div class="kpi-card major" style="--accent-color: var(--accent2)">
-      <div class="kpi-label">Marge projetée 2026 (CA × taux actuel)</div>
+  <!-- KPIs majeurs - ligne 2 : projection marge ajustable -->
+  <div style="margin-bottom: 16px;">
+    <div class="kpi-card major" style="--accent-color: var(--warning); max-width: 100%;">
+      <div class="kpi-label">Marge projetée 2026 (CA × taux ajustable)</div>
       <div style="display:flex; align-items:baseline; gap:16px;">
         <div class="kpi-value" id="kpi-margin-projected">--</div>
-        <div class="kpi-value" id="kpi-margin-projected-pct" style="font-size:28px; color:var(--accent2);">--</div>
+        <div class="kpi-value" id="kpi-margin-projected-pct" style="font-size:28px; color:var(--warning);">60%</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
+        <span style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">Taux de marge :</span>
+        <input type="range" id="margin-rate-slider" min="30" max="90" value="60" step="1"
+          style="flex:1; accent-color:var(--warning); cursor:pointer;">
+        <span id="margin-rate-label" style="font-size:14px; font-weight:700; color:var(--warning); min-width:36px; text-align:right;">60%</span>
       </div>
       <div class="kpi-sub" id="kpi-margin-projected-sub"></div>
     </div>
@@ -1144,11 +1142,24 @@ function pctColor(pct) {
   return 'var(--accent3)';
 }
 
-function computeObjectives() {
+function updateMarginProjection() {
+  const slider = document.getElementById('margin-rate-slider');
+  const rate = parseInt(slider.value, 10);
+  const landing = window._landing2026 || 0;
+  const margin = landing * (rate / 100);
+  document.getElementById('kpi-margin-projected').textContent = fmt(margin);
+  document.getElementById('kpi-margin-projected-pct').textContent = `${rate}%`;
+  document.getElementById('margin-rate-label').textContent = `${rate}%`;
+  document.getElementById('kpi-margin-projected-sub').textContent = `${fmt(landing)} CA × ${rate}%`;
+  computeObjectives(rate);
+}
+
+function computeObjectives(marginRate) {
   // CA = Landing 2026 (facturé + à facturer)
   const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
-  // MB = marge projetée 2026 (Landing × 60% — taux prudent)
-  const mbProjected = landing * 0.60;
+  const rate = marginRate !== undefined ? marginRate : parseInt((document.getElementById('margin-rate-slider') || {value:'60'}).value, 10);
+  // MB = marge projetée 2026 (Landing × taux ajustable)
+  const mbProjected = landing * (rate / 100);
 
   for (const s of SCENARIOS) {
     const caPct = s.ca > 0 ? Math.min((landing / s.ca) * 100, 150) : 0;
@@ -1190,7 +1201,7 @@ async function loadAll() {
   setStatus('loading', `Chargement des données du ${from} au ${to}...`);
 
   // Reset KPIs
-  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-gross-margin', 'kpi-gross-margin-pct', 'kpi-margin-projected', 'kpi-margin-projected-pct', 'kpi-margin-conservative', 'kpi-purchase-total']
+  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-gross-margin', 'kpi-gross-margin-pct', 'kpi-margin-projected', 'kpi-margin-projected-pct', 'kpi-purchase-total']
     .forEach(id => { document.getElementById(id).textContent = '...'; });
 
   try {
@@ -1204,8 +1215,6 @@ async function loadAll() {
     computeMargin();
     // Camembert ventes par client
     renderPieChart();
-    // Objectifs scénarios
-    computeObjectives();
     // Landing 2026 = facturé + à facturer (ToInvoice nets des acomptes)
     const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
     document.getElementById('kpi-landing').textContent = fmt(landing);
@@ -1219,14 +1228,8 @@ async function loadAll() {
     document.getElementById('kpi-gross-margin-pct').textContent = `${grossPct.toFixed(1)}%`;
     document.getElementById('kpi-gross-margin-sub').textContent = `${fmt(totalRev)} revenus - ${fmt(totalCost)} achats directs`;
     // Projections basées sur le Landing 2026
-    const landing2 = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
-    const marginProjected = landing2 * (grossPct / 100);
-    const marginConservative = landing2 * 0.60;
-    document.getElementById('kpi-margin-projected').textContent = fmt(marginProjected);
-    document.getElementById('kpi-margin-projected-pct').textContent = `${grossPct.toFixed(1)}%`;
-    document.getElementById('kpi-margin-projected-sub').textContent = `${fmt(landing2)} CA × ${grossPct.toFixed(1)}% taux actuel`;
-    document.getElementById('kpi-margin-conservative').textContent = fmt(marginConservative);
-    document.getElementById('kpi-margin-conservative-sub').textContent = `${fmt(landing2)} CA × 60% taux prudent`;
+    window._landing2026 = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
+    updateMarginProjection();
     setStatus('ok', `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-BE')} - Période ${from} > ${to}`);
   } catch (err) {
     setStatus('error', `Erreur : ${err.message}. Vérifiez BILLIT_API_KEY et BILLIT_PARTY_ID dans Netlify.`);
@@ -1243,6 +1246,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const now = new Date();
   document.getElementById('dateFrom').value = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
   document.getElementById('dateTo').value = now.toISOString().split('T')[0];
+  document.getElementById('margin-rate-slider').addEventListener('input', updateMarginProjection);
   loadAll();
 });
 </script>
