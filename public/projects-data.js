@@ -14,7 +14,13 @@ const PROJECTS_DATA = {
     "2607": "PELICANO_26",
     "2608": "ADA_26",
     "2609": "ADA_26",
-    "2610": "ADA_26"
+    "2610": "ADA_26",
+    "2611": "ADA_26",
+    "2612": "PELICANO_26",
+    "2613": "EF_26",
+    "2614": "ADA_26",
+    "2615": "PELICANO_26",
+    "2616": "PELICANO_26"
   },
   // Factures d'achat → projet
   purchases: {
