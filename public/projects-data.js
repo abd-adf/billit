@@ -1,6 +1,6 @@
 // Mapping numéro de commande → code projet
 // Généré depuis les exports Billit - à mettre à jour mensuellement
-// Dernière mise à jour : 2026-04-28
+// Dernière mise à jour : 2026-06-18
 
 const PROJECTS_DATA = {
   // Factures de vente → projet
@@ -18,19 +18,47 @@ const PROJECTS_DATA = {
   },
   // Factures d'achat → projet
   purchases: {
+    // ADA_26
     "2026109": "ADA_26",
+    "ADI26-0279": "ADA_26",
+    "Leg26-0094": "ADA_26",
+    "Leg26-0093": "ADA_26",
+    "260057": "ADA_26",
+    "2000688": "ADA_26",
+    "1982047": "ADA_26",
+    "2019244": "ADA_26",
+    "260177": "ADA_26",
+    "Leg26-0180": "ADA_26",
+    "Leg26-0181": "ADA_26",
+    "Leg26-0182": "ADA_26",
+    "Leg26-0183": "ADA_26",
+    "Invoice 22600639": "ADA_26",
+    // CHARCOT_26
+    "2026-3-11": "CHARCOT_26",
+    // EF_26
+    "20260207": "EF_26",
+    "26-02-215": "EF_26",
+    "5568037742": "EF_26",
+    "5542659132": "EF_26",
+    "5508195672": "EF_26",
+    "FBADS-268-105514289": "EF_26",
+    "FBADS-268-105524220": "EF_26",
+    "FBADS-268-105537942": "EF_26",
+    "FBADS-268-105595986": "EF_26",
+    "FBADS-268-105630885": "EF_26",
+    "FBADS-268-105668612": "EF_26",
+    "FBADS-268-105686272": "EF_26",
+    "FBADS-268-105705251": "EF_26",
+    "FBADS-268-105735089": "EF_26",
+    "FBADS-268-106039548": "EF_26",
+    // PELICANO_26
     "Sponsoring RTU 2026": "PELICANO_26",
     "26-04-219": "PELICANO_26",
     "26-04-220": "PELICANO_26",
     "ADI26-0278": "PELICANO_26",
-    "ADI26-0279": "ADA_26",
-    "2026-3-11": "CHARCOT_26",
-    "Leg26-0094": "ADA_26",
-    "Leg26-0093": "ADA_26",
     "2026/001": "PELICANO_26",
-    "260057": "ADA_26",
     "260058": "PELICANO_26",
-    "26-02-215": "EF_26",
-    "20260207": "EF_26"
+    "260178": "PELICANO_26",
+    "RN2026.05.009446": "PELICANO_26"
   }
 };
