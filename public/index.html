@@ -757,12 +757,19 @@ async function billitGet(endpoint) {
 }
 
 async function fetchAllPages(baseEndpoint) {
-  // Billit OData - on pagine si besoin (top/skip)
-  // Pour commencer on fait un appel avec un top élevé
+  // Billit OData - pagination par $top/$skip (max 100 par appel)
   const separator = baseEndpoint.includes('?') ? '&' : '?';
-  const url = `${baseEndpoint}${separator}$top=100`;
-  const data = await billitGet(url);
-  return data.Items || data.items || data || [];
+  let allItems = [];
+  let skip = 0;
+  while (true) {
+    const url = `${baseEndpoint}${separator}$top=100&$skip=${skip}`;
+    const data = await billitGet(url);
+    const items = data.Items || data.items || data || [];
+    allItems = allItems.concat(items);
+    if (items.length < 100) break;
+    skip += 100;
+  }
+  return allItems;
 }
 
 // ============================================================
