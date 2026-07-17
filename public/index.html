@@ -568,6 +568,23 @@
     </div>
   </div>
 
+  <!-- KPIs majeurs - ligne 3 : résultat avant impôt projeté -->
+  <div style="margin-bottom: 16px;">
+    <div class="kpi-card major" style="--accent-color: var(--warning); max-width: 100%;">
+      <div class="kpi-label">Resultat avant impot projete 2026 (MB projetee - frais generaux projetes)</div>
+      <div style="display:flex; align-items:baseline; gap:16px;">
+        <div class="kpi-value" id="kpi-net-result">--</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
+        <span style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">Frais generaux annuels projetes :</span>
+        <input type="range" id="overhead-slider" min="0" max="400000" value="210000" step="1000"
+          style="flex:1; accent-color:var(--warning); cursor:pointer;">
+        <span id="overhead-label" style="font-size:14px; font-weight:700; color:var(--warning); min-width:80px; text-align:right;">50 000 EUR</span>
+      </div>
+      <div class="kpi-sub" id="kpi-net-result-sub"></div>
+    </div>
+  </div>
+
   <!-- KPIs secondaires -->
   <div class="kpi-grid">
     <div class="kpi-card" style="--accent-color: var(--accent)">
@@ -1126,6 +1143,8 @@ async function loadPurchases(from, to) {
     if (proj) window._costByProject[proj] = (window._costByProject[proj] || 0) + htva;
   }
 
+  window._totalPurchase = totalPurchase;
+  window._totalCostDirect = Object.values(window._costByProject || {}).reduce((a, b) => a + b, 0);
   document.getElementById('kpi-purchase-total').textContent = fmt(totalPurchase);
   document.getElementById('kpi-purchase-count').textContent = `${items.length} facture(s) fournisseur`;
 
@@ -1170,6 +1189,25 @@ function updateMarginProjection() {
   document.getElementById('margin-rate-label').textContent = `${rate}%`;
   document.getElementById('kpi-margin-projected-sub').textContent = `${fmt(landing)} CA × ${rate}%`;
   computeObjectives(rate);
+}
+
+function updateNetResult() {
+  const marginSlider = document.getElementById('margin-rate-slider');
+  const overheadSlider = document.getElementById('overhead-slider');
+  const rate = parseInt(marginSlider.value, 10);
+  const landing = window._landing2026 || 0;
+  const mbProjected = landing * (rate / 100);
+  const overhead = parseInt(overheadSlider.value, 10);
+  const netResult = mbProjected - overhead;
+  document.getElementById('kpi-net-result').textContent = fmt(netResult);
+  document.getElementById('overhead-label').textContent = fmt(overhead);
+  document.getElementById('kpi-net-result-sub').textContent = `${fmt(mbProjected)} MB projetee - ${fmt(overhead)} frais generaux`;
+}
+
+function initOverheadSlider() {
+  const slider = document.getElementById('overhead-slider');
+  slider.value = 210000;
+  updateNetResult();
 }
 
 function computeObjectives(marginRate) {
@@ -1219,7 +1257,7 @@ async function loadAll() {
   setStatus('loading', `Chargement des données du ${from} au ${to}...`);
 
   // Reset KPIs
-  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-gross-margin', 'kpi-gross-margin-pct', 'kpi-margin-projected', 'kpi-margin-projected-pct', 'kpi-purchase-total']
+  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-gross-margin', 'kpi-gross-margin-pct', 'kpi-margin-projected', 'kpi-margin-projected-pct', 'kpi-purchase-total', 'kpi-net-result']
     .forEach(id => { document.getElementById(id).textContent = '...'; });
 
   try {
@@ -1248,6 +1286,8 @@ async function loadAll() {
     // Projections basées sur le Landing 2026
     window._landing2026 = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
     updateMarginProjection();
+    // Resultat avant impot projete
+    initOverheadSlider();
     setStatus('ok', `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-BE')} - Période ${from} > ${to}`);
   } catch (err) {
     setStatus('error', `Erreur : ${err.message}. Vérifiez BILLIT_API_KEY et BILLIT_PARTY_ID dans Netlify.`);
@@ -1264,7 +1304,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const now = new Date();
   document.getElementById('dateFrom').value = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
   document.getElementById('dateTo').value = now.toISOString().split('T')[0];
-  document.getElementById('margin-rate-slider').addEventListener('input', updateMarginProjection);
+  document.getElementById('margin-rate-slider').addEventListener('input', () => { updateMarginProjection(); updateNetResult(); });
+  document.getElementById('overhead-slider').addEventListener('input', updateNetResult);
   loadAll();
 });
 </script>
