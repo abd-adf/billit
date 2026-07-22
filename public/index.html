@@ -1251,6 +1251,8 @@ function renderPipelineDeals() {
       </td>
       <td style="text-align:center">
         <select data-deal-idx="${i}" data-field="margin" style="background:var(--card-bg); color:var(--text-primary); border:1px solid var(--border); border-radius:4px; padding:2px 4px; font-size:13px;">
+          <option value="20" ${d.margin===20?'selected':''}>20%</option>
+          <option value="25" ${d.margin===25?'selected':''}>25%</option>
           <option value="30" ${d.margin===30?'selected':''}>30%</option>
           <option value="40" ${d.margin===40?'selected':''}>40%</option>
           <option value="50" ${d.margin===50?'selected':''}>50%</option>
