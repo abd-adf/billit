@@ -1337,8 +1337,11 @@ function initLandingSection() {
 }
 
 function computeObjectives() {
-  const landing = window._caLanding || ((window._totalInvoiced || 0) + (window._totalToInvoice || 0));
-  const mbProjected = window._mbLanding || 0;
+  // CA 2026 = facturé + à facturer (sans pipeline)
+  const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
+  // MB objectifs = CA 2026 × taux de marge actuel
+  const marginRate = (window._grossMarginPct || 0) / 100;
+  const mbProjected = landing * marginRate;
 
   for (const s of SCENARIOS) {
     const caPct = s.ca > 0 ? Math.min((landing / s.ca) * 100, 150) : 0;
@@ -1406,6 +1409,7 @@ async function loadAll() {
     document.getElementById('kpi-gross-margin').textContent = fmt(grossMargin);
     document.getElementById('kpi-gross-margin-pct').textContent = `${grossPct.toFixed(1)}%`;
     document.getElementById('kpi-gross-margin-sub').textContent = `${fmt(totalRev)} revenus - ${fmt(totalCost)} achats directs`;
+    window._grossMarginPct = grossPct;
     // Projections basées sur le Landing 2026
     window._landing2026 = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
     // Landing section : pipeline deals + overhead
