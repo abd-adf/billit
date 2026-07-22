@@ -1308,13 +1308,12 @@ function updateLandingTotals() {
   document.getElementById('kpi-ca-landing-total').textContent = fmt(caLanding);
   document.getElementById('kpi-ca-landing-total-sub').textContent = `${fmt(baseLanding)} confirme + ${fmt(wca)} pipeline pondere`;
 
-  // MB landing = MB à date (réelle) + MB pipeline pondérée
-  const totalRev = Object.values(window._revenueByProject || {}).reduce((a, b) => a + b, 0);
-  const totalCost = Object.values(window._costByProject || {}).reduce((a, b) => a + b, 0);
-  const mbAdate = totalRev - totalCost;
-  const mbLanding = mbAdate + wmb;
+  // MB landing = CA 2026 × taux de marge actuel + MB pipeline pondérée
+  const marginRate = (window._grossMarginPct || 0) / 100;
+  const mbConfirme = baseLanding * marginRate;
+  const mbLanding = mbConfirme + wmb;
   document.getElementById('kpi-margin-projected').textContent = fmt(mbLanding);
-  document.getElementById('kpi-margin-projected-sub').textContent = `${fmt(mbAdate)} MB a date + ${fmt(wmb)} pipeline MB ponderee`;
+  document.getElementById('kpi-margin-projected-sub').textContent = `${fmt(baseLanding)} CA × ${(marginRate*100).toFixed(1)}% + ${fmt(wmb)} pipeline MB`;
 
   window._mbLanding = mbLanding;
   window._caLanding = caLanding;
