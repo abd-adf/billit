@@ -550,28 +550,62 @@
     </div>
   </div>
 
-  <!-- KPIs majeurs - ligne 2 : projection marge ajustable -->
+  <!-- ============ LANDING 2026 ============ -->
+  <div class="section-title" style="margin-top:32px;"><span class="section-accent">03</span> LANDING 2026</div>
+
+  <!-- Pipeline deals table -->
   <div style="margin-bottom: 16px;">
-    <div class="kpi-card major" style="--accent-color: var(--warning); max-width: 100%;">
-      <div class="kpi-label">Marge projetée 2026 (CA × taux ajustable)</div>
-      <div style="display:flex; align-items:baseline; gap:16px;">
-        <div class="kpi-value" id="kpi-margin-projected">--</div>
-        <div class="kpi-value" id="kpi-margin-projected-pct" style="font-size:28px; color:var(--warning);">60%</div>
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-title">Pipeline - probabilite et marge par deal</span>
+        <span class="table-count" id="count-pipeline-deals">0</span>
       </div>
-      <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
-        <span style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">Taux de marge :</span>
-        <input type="range" id="margin-rate-slider" min="30" max="90" value="60" step="1"
-          style="flex:1; accent-color:var(--warning); cursor:pointer;">
-        <span id="margin-rate-label" style="font-size:14px; font-weight:700; color:var(--warning); min-width:36px; text-align:right;">60%</span>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Objet</th>
+              <th style="text-align:right">Montant HTVA</th>
+              <th style="text-align:center">Proba %</th>
+              <th style="text-align:center">Marge %</th>
+              <th style="text-align:right">CA pondere</th>
+              <th style="text-align:right">MB ponderee</th>
+            </tr>
+          </thead>
+          <tbody id="table-pipeline-deals"><tr><td colspan="7" class="empty-state">Chargement...</td></tr></tbody>
+          <tfoot>
+            <tr style="font-weight:700; border-top:2px solid var(--border);">
+              <td colspan="3">Total pipeline pondere</td>
+              <td></td>
+              <td></td>
+              <td style="text-align:right" id="pipeline-weighted-ca">--</td>
+              <td style="text-align:right" id="pipeline-weighted-mb">--</td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
+    </div>
+  </div>
+
+  <!-- KPIs Landing -->
+  <div class="kpi-grid-major">
+    <div class="kpi-card major" style="--accent-color: var(--accent4)">
+      <div class="kpi-label">CA landing 2026 (facture + a facturer + pipeline pondere)</div>
+      <div class="kpi-value" id="kpi-ca-landing-total">--</div>
+      <div class="kpi-sub" id="kpi-ca-landing-total-sub"></div>
+    </div>
+    <div class="kpi-card major" style="--accent-color: var(--warning)">
+      <div class="kpi-label">MB landing 2026 (MB a date + pipeline MB ponderee)</div>
+      <div class="kpi-value" id="kpi-margin-projected">--</div>
       <div class="kpi-sub" id="kpi-margin-projected-sub"></div>
     </div>
   </div>
 
-  <!-- KPIs majeurs - ligne 3 : résultat avant impôt projeté -->
-  <div style="margin-bottom: 16px;">
+  <!-- Résultat avant impôt projeté = MB landing - frais généraux -->
+  <div style="margin-top: 16px; margin-bottom: 16px;">
     <div class="kpi-card major" style="--accent-color: var(--warning); max-width: 100%;">
-      <div class="kpi-label">Resultat avant impot projete 2026 (MB projetee - frais generaux projetes)</div>
+      <div class="kpi-label">Resultat avant impot projete 2026 (MB landing - frais generaux)</div>
       <div style="display:flex; align-items:baseline; gap:16px;">
         <div class="kpi-value" id="kpi-net-result">--</div>
       </div>
@@ -579,7 +613,7 @@
         <span style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">Frais generaux annuels projetes :</span>
         <input type="range" id="overhead-slider" min="0" max="400000" value="210000" step="1000"
           style="flex:1; accent-color:var(--warning); cursor:pointer;">
-        <span id="overhead-label" style="font-size:14px; font-weight:700; color:var(--warning); min-width:80px; text-align:right;">50 000 EUR</span>
+        <span id="overhead-label" style="font-size:14px; font-weight:700; color:var(--warning); min-width:80px; text-align:right;">210 000 EUR</span>
       </div>
       <div class="kpi-sub" id="kpi-net-result-sub"></div>
     </div>
@@ -658,7 +692,7 @@
   </div>
 
   <!-- ============ ACHATS ============ -->
-  <div class="section-title"><span class="section-accent">03</span> ACHATS</div>
+  <div class="section-title"><span class="section-accent">04</span> ACHATS</div>
 
   <div class="kpi-grid">
     <div class="kpi-card" style="--accent-color: var(--accent3)">
@@ -697,7 +731,7 @@
   </div>
 
   <!-- ============ MARGE BRUTE PAR CLIENT ============ -->
-  <div class="section-title"><span class="section-accent">04</span> MARGE BRUTE PAR CLIENT</div>
+  <div class="section-title"><span class="section-accent">05</span> MARGE BRUTE PAR CLIENT</div>
   <div class="tables-grid" style="grid-template-columns: 1fr;">
     <div class="table-card">
       <div class="table-header">
@@ -939,7 +973,18 @@ async function loadDevPipeline(from, to) {
   const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
 
   let totalDev = 0;
-  for (const item of items) totalDev += (item.TotalExcl || 0);
+  window._pipelineDeals = [];
+  for (const item of items) {
+    totalDev += (item.TotalExcl || 0);
+    window._pipelineDeals.push({
+      id: item.ID,
+      client: item.CounterParty?.DisplayName || 'Inconnu',
+      title: item.OrderTitle || item.OrderNumber || '',
+      amount: item.TotalExcl || 0,
+      proba: 50,
+      margin: 60
+    });
+  }
 
   document.getElementById('kpi-dev').textContent = fmt(totalDev);
   document.getElementById('kpi-dev-count').textContent = `${items.length} devis en attente`;
@@ -1179,43 +1224,121 @@ function pctColor(pct) {
   return 'var(--accent3)';
 }
 
-function updateMarginProjection() {
-  const slider = document.getElementById('margin-rate-slider');
-  const rate = parseInt(slider.value, 10);
-  const landing = window._landing2026 || 0;
-  const margin = landing * (rate / 100);
-  document.getElementById('kpi-margin-projected').textContent = fmt(margin);
-  document.getElementById('kpi-margin-projected-pct').textContent = `${rate}%`;
-  document.getElementById('margin-rate-label').textContent = `${rate}%`;
-  document.getElementById('kpi-margin-projected-sub').textContent = `${fmt(landing)} CA × ${rate}%`;
-  computeObjectives(rate);
+function renderPipelineDeals() {
+  const deals = window._pipelineDeals || [];
+  const tbody = document.getElementById('table-pipeline-deals');
+  document.getElementById('count-pipeline-deals').textContent = deals.length;
+
+  if (deals.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun deal en pipeline</td></tr>';
+    updateLandingTotals();
+    return;
+  }
+
+  tbody.innerHTML = deals.map((d, i) => `
+    <tr>
+      <td>${d.client}</td>
+      <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${d.title}">${d.title}</td>
+      <td style="text-align:right">${fmt(d.amount)}</td>
+      <td style="text-align:center">
+        <select data-deal-idx="${i}" data-field="proba" style="background:var(--card-bg); color:var(--text-primary); border:1px solid var(--border); border-radius:4px; padding:2px 4px; font-size:13px;">
+          <option value="0" ${d.proba===0?'selected':''}>0%</option>
+          <option value="25" ${d.proba===25?'selected':''}>25%</option>
+          <option value="50" ${d.proba===50?'selected':''}>50%</option>
+          <option value="75" ${d.proba===75?'selected':''}>75%</option>
+          <option value="100" ${d.proba===100?'selected':''}>100%</option>
+        </select>
+      </td>
+      <td style="text-align:center">
+        <select data-deal-idx="${i}" data-field="margin" style="background:var(--card-bg); color:var(--text-primary); border:1px solid var(--border); border-radius:4px; padding:2px 4px; font-size:13px;">
+          <option value="30" ${d.margin===30?'selected':''}>30%</option>
+          <option value="40" ${d.margin===40?'selected':''}>40%</option>
+          <option value="50" ${d.margin===50?'selected':''}>50%</option>
+          <option value="60" ${d.margin===60?'selected':''}>60%</option>
+          <option value="70" ${d.margin===70?'selected':''}>70%</option>
+          <option value="80" ${d.margin===80?'selected':''}>80%</option>
+          <option value="90" ${d.margin===90?'selected':''}>90%</option>
+          <option value="100" ${d.margin===100?'selected':''}>100%</option>
+        </select>
+      </td>
+      <td style="text-align:right" id="deal-wca-${i}">${fmt(d.amount * d.proba / 100)}</td>
+      <td style="text-align:right" id="deal-wmb-${i}">${fmt(d.amount * d.proba / 100 * d.margin / 100)}</td>
+    </tr>
+  `).join('');
+
+  // Attach event listeners
+  tbody.querySelectorAll('select').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.dataset.dealIdx, 10);
+      const field = e.target.dataset.field;
+      const val = parseInt(e.target.value, 10);
+      window._pipelineDeals[idx][field] = val;
+      const d = window._pipelineDeals[idx];
+      const wca = d.amount * d.proba / 100;
+      const wmb = wca * d.margin / 100;
+      document.getElementById(`deal-wca-${idx}`).textContent = fmt(wca);
+      document.getElementById(`deal-wmb-${idx}`).textContent = fmt(wmb);
+      updateLandingTotals();
+    });
+  });
+
+  updateLandingTotals();
 }
 
-function updateNetResult() {
-  const marginSlider = document.getElementById('margin-rate-slider');
-  const overheadSlider = document.getElementById('overhead-slider');
-  const rate = parseInt(marginSlider.value, 10);
-  const landing = window._landing2026 || 0;
-  const mbProjected = landing * (rate / 100);
-  const overhead = parseInt(overheadSlider.value, 10);
-  const netResult = mbProjected - overhead;
-  document.getElementById('kpi-net-result').textContent = fmt(netResult);
-  document.getElementById('overhead-label').textContent = fmt(overhead);
-  document.getElementById('kpi-net-result-sub').textContent = `${fmt(mbProjected)} MB projetee - ${fmt(overhead)} frais generaux`;
+function getPipelineWeighted() {
+  const deals = window._pipelineDeals || [];
+  let wca = 0, wmb = 0;
+  for (const d of deals) {
+    const ca = d.amount * d.proba / 100;
+    wca += ca;
+    wmb += ca * d.margin / 100;
+  }
+  return { wca, wmb };
 }
 
-function initOverheadSlider() {
-  const slider = document.getElementById('overhead-slider');
-  slider.value = 210000;
+function updateLandingTotals() {
+  const { wca, wmb } = getPipelineWeighted();
+  document.getElementById('pipeline-weighted-ca').textContent = fmt(wca);
+  document.getElementById('pipeline-weighted-mb').textContent = fmt(wmb);
+
+  const baseLanding = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
+  const caLanding = baseLanding + wca;
+  document.getElementById('kpi-ca-landing-total').textContent = fmt(caLanding);
+  document.getElementById('kpi-ca-landing-total-sub').textContent = `${fmt(baseLanding)} confirme + ${fmt(wca)} pipeline pondere`;
+
+  // MB landing = MB à date (réelle) + MB pipeline pondérée
+  const totalRev = Object.values(window._revenueByProject || {}).reduce((a, b) => a + b, 0);
+  const totalCost = Object.values(window._costByProject || {}).reduce((a, b) => a + b, 0);
+  const mbAdate = totalRev - totalCost;
+  const mbLanding = mbAdate + wmb;
+  document.getElementById('kpi-margin-projected').textContent = fmt(mbLanding);
+  document.getElementById('kpi-margin-projected-sub').textContent = `${fmt(mbAdate)} MB a date + ${fmt(wmb)} pipeline MB ponderee`;
+
+  window._mbLanding = mbLanding;
+  window._caLanding = caLanding;
+  computeObjectives();
   updateNetResult();
 }
 
-function computeObjectives(marginRate) {
-  // CA = Landing 2026 (facturé + à facturer)
-  const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
-  const rate = marginRate !== undefined ? marginRate : parseInt((document.getElementById('margin-rate-slider') || {value:'60'}).value, 10);
-  // MB = marge projetée 2026 (Landing × taux ajustable)
-  const mbProjected = landing * (rate / 100);
+function updateNetResult() {
+  const mbLanding = window._mbLanding || 0;
+  const overheadSlider = document.getElementById('overhead-slider');
+  const overhead = parseInt(overheadSlider.value, 10);
+  const netResult = mbLanding - overhead;
+  document.getElementById('kpi-net-result').textContent = fmt(netResult);
+  document.getElementById('overhead-label').textContent = fmt(overhead);
+  document.getElementById('kpi-net-result-sub').textContent = `${fmt(mbLanding)} MB landing - ${fmt(overhead)} frais generaux`;
+}
+
+function initLandingSection() {
+  const overheadSlider = document.getElementById('overhead-slider');
+  overheadSlider.value = 210000;
+  renderPipelineDeals();
+}
+
+function computeObjectives() {
+  const landing = window._caLanding || ((window._totalInvoiced || 0) + (window._totalToInvoice || 0));
+  const mbProjected = window._mbLanding || 0;
 
   for (const s of SCENARIOS) {
     const caPct = s.ca > 0 ? Math.min((landing / s.ca) * 100, 150) : 0;
@@ -1257,7 +1380,7 @@ async function loadAll() {
   setStatus('loading', `Chargement des données du ${from} au ${to}...`);
 
   // Reset KPIs
-  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-gross-margin', 'kpi-gross-margin-pct', 'kpi-margin-projected', 'kpi-margin-projected-pct', 'kpi-purchase-total', 'kpi-net-result']
+  ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-gross-margin', 'kpi-gross-margin-pct', 'kpi-margin-projected', 'kpi-ca-landing-total', 'kpi-purchase-total', 'kpi-net-result']
     .forEach(id => { document.getElementById(id).textContent = '...'; });
 
   try {
@@ -1285,9 +1408,8 @@ async function loadAll() {
     document.getElementById('kpi-gross-margin-sub').textContent = `${fmt(totalRev)} revenus - ${fmt(totalCost)} achats directs`;
     // Projections basées sur le Landing 2026
     window._landing2026 = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
-    updateMarginProjection();
-    // Resultat avant impot projete
-    initOverheadSlider();
+    // Landing section : pipeline deals + overhead
+    initLandingSection();
     setStatus('ok', `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-BE')} - Période ${from} > ${to}`);
   } catch (err) {
     setStatus('error', `Erreur : ${err.message}. Vérifiez BILLIT_API_KEY et BILLIT_PARTY_ID dans Netlify.`);
@@ -1304,7 +1426,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const now = new Date();
   document.getElementById('dateFrom').value = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
   document.getElementById('dateTo').value = now.toISOString().split('T')[0];
-  document.getElementById('margin-rate-slider').addEventListener('input', () => { updateMarginProjection(); updateNetResult(); });
   document.getElementById('overhead-slider').addEventListener('input', updateNetResult);
   loadAll();
 });
