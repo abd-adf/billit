@@ -611,9 +611,9 @@
       </div>
       <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
         <span style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">Frais generaux annuels projetes :</span>
-        <input type="range" id="overhead-slider" min="0" max="400000" value="210000" step="1000"
+        <input type="range" id="overhead-slider" min="0" max="400000" value="190000" step="1000"
           style="flex:1; accent-color:var(--warning); cursor:pointer;">
-        <span id="overhead-label" style="font-size:14px; font-weight:700; color:var(--warning); min-width:80px; text-align:right;">210 000 EUR</span>
+        <span id="overhead-label" style="font-size:14px; font-weight:700; color:var(--warning); min-width:80px; text-align:right;">190 000 EUR</span>
       </div>
       <div class="kpi-sub" id="kpi-net-result-sub"></div>
     </div>
@@ -1333,7 +1333,7 @@ function updateNetResult() {
 
 function initLandingSection() {
   const overheadSlider = document.getElementById('overhead-slider');
-  overheadSlider.value = 210000;
+  overheadSlider.value = 190000;
   renderPipelineDeals();
 }
 

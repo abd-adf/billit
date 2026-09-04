@@ -1,6 +1,6 @@
 // Mapping numéro de commande → code projet
 // Généré depuis les exports Billit - à mettre à jour mensuellement
-// Dernière mise à jour : 2026-07-17
+// Dernière mise à jour : 2026-09-04
 
 const PROJECTS_DATA = {
   // Factures de vente → projet
@@ -24,7 +24,11 @@ const PROJECTS_DATA = {
     "2617": "CHARCOT_26",
     "2619": "ADA_26",
     "2620": "ADA_26",
-    "2621": "CAP48_26"
+    "2618": "CAP48_26",
+    "2621": "CAP48_26",
+    "2622": "ADA_26",
+    "2623": "LEASING_VELO",
+    "2624": "PELICANO_26"
   },
   // Factures d'achat → projet
   purchases: {
