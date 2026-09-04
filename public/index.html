@@ -506,7 +506,6 @@
               <th></th>
               <th style="text-align:right">2024 (18m)</th>
               <th style="text-align:right">2025</th>
-              <th style="text-align:right">2026 Landing</th>
               <th style="text-align:right">2026 Objectif</th>
             </tr>
           </thead>
@@ -515,43 +514,31 @@
               <td><strong>CA</strong></td>
               <td style="text-align:right; color:var(--text-secondary)">343 129</td>
               <td style="text-align:right">328 050</td>
-              <td style="text-align:right; font-weight:700" id="comp-ca-2026">--</td>
               <td style="text-align:right; color:var(--accent4)">420 000</td>
             </tr>
             <tr>
               <td><strong>MB</strong></td>
               <td style="text-align:right; color:var(--text-secondary)">196 777</td>
               <td style="text-align:right">184 503</td>
-              <td style="text-align:right; font-weight:700" id="comp-mb-2026">--</td>
               <td style="text-align:right; color:var(--accent4)">260 000</td>
             </tr>
             <tr>
               <td><strong>MB %</strong></td>
               <td style="text-align:right; color:var(--text-secondary)">57.3%</td>
               <td style="text-align:right">56.2%</td>
-              <td style="text-align:right; font-weight:700" id="comp-mb-pct-2026">--</td>
               <td style="text-align:right; color:var(--accent4)">61.9%</td>
             </tr>
             <tr style="border-top:2px solid var(--border);">
               <td><strong>Overhead</strong></td>
               <td style="text-align:right; color:var(--text-secondary)">205 642</td>
               <td style="text-align:right">158 091</td>
-              <td style="text-align:right; font-weight:700" id="comp-overhead-2026">190 000</td>
               <td style="text-align:right; color:var(--accent4)">190 000</td>
             </tr>
             <tr>
               <td><strong>Resultat av. impot</strong></td>
               <td style="text-align:right; color:var(--accent3)">-8 865</td>
               <td style="text-align:right; color:var(--success)">26 412</td>
-              <td style="text-align:right; font-weight:700" id="comp-result-2026">--</td>
               <td style="text-align:right; color:var(--accent4)">70 000</td>
-            </tr>
-            <tr>
-              <td><strong>vs N-1</strong></td>
-              <td style="text-align:right; color:var(--text-secondary)">-</td>
-              <td style="text-align:right; color:var(--success)">-</td>
-              <td style="text-align:right; font-weight:700" id="comp-vs-2025">--</td>
-              <td style="text-align:right; color:var(--accent4)">+165%</td>
             </tr>
           </tbody>
         </table>
@@ -1438,30 +1425,8 @@ function computeObjectives() {
 }
 
 function updateComparatif() {
-  const caLanding = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
-  // MB = marge brute à date (revenus facturés - achats directs projets)
-  const totalRev = Object.values(window._revenueByProject || {}).reduce((a, b) => a + b, 0);
-  const totalCost = Object.values(window._costByProject || {}).reduce((a, b) => a + b, 0);
-  const mbAdate = totalRev - totalCost;
-  const overhead = parseInt(document.getElementById('overhead-slider').value, 10);
-  const result2026 = mbAdate - overhead;
-  const mbPct2026 = totalRev > 0 ? (mbAdate / totalRev * 100) : 0;
-
-  document.getElementById('comp-ca-2026').textContent = fmt(caLanding);
-  document.getElementById('comp-mb-2026').textContent = fmt(mbAdate);
-  document.getElementById('comp-mb-pct-2026').textContent = mbPct2026.toFixed(1) + '%';
-  document.getElementById('comp-overhead-2026').textContent = fmt(overhead);
-
-  const el = document.getElementById('comp-result-2026');
-  el.textContent = fmt(result2026);
-  el.style.color = result2026 >= 0 ? 'var(--success)' : 'var(--accent3)';
-
-  // vs 2025 (résultat avant impôt 2025 = 26 412)
-  const vsEl = document.getElementById('comp-vs-2025');
-  const delta = result2026 - 26412;
-  const deltaPct = (delta / 26412 * 100);
-  vsEl.textContent = `${delta >= 0 ? '+' : ''}${deltaPct.toFixed(0)}%`;
-  vsEl.style.color = delta >= 0 ? 'var(--success)' : 'var(--accent3)';
+  // Tableau comparatif est maintenant statique (historique + objectif)
+  // Pas de mise à jour dynamique nécessaire
 }
 
 // ============================================================
