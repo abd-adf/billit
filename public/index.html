@@ -647,8 +647,14 @@
       <div class="kpi-sub" id="kpi-ca-landing-total-sub"></div>
     </div>
     <div class="kpi-card major" style="--accent-color: var(--warning)">
-      <div class="kpi-label">MB landing 2026 (MB a date + pipeline MB ponderee)</div>
+      <div class="kpi-label">MB landing 2026 (CA confirme x taux MB + pipeline MB ponderee)</div>
       <div class="kpi-value" id="kpi-margin-projected">--</div>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+        <span style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">Taux MB :</span>
+        <input type="number" id="margin-rate-input" value="65" min="0" max="100" step="1"
+          style="width:60px; padding:4px 8px; border:1px solid var(--border); border-radius:4px; background:var(--surface2); color:var(--text); font-size:14px; font-weight:700; text-align:center;">
+        <span style="font-size:12px; color:var(--text-secondary);">%</span>
+      </div>
       <div class="kpi-sub" id="kpi-margin-projected-sub"></div>
     </div>
   </div>
@@ -1359,12 +1365,13 @@ function updateLandingTotals() {
   document.getElementById('kpi-ca-landing-total').textContent = fmt(caLanding);
   document.getElementById('kpi-ca-landing-total-sub').textContent = `${fmt(baseLanding)} confirme + ${fmt(wca)} pipeline pondere`;
 
-  // MB landing = CA 2026 × taux de marge actuel + MB pipeline pondérée
-  const marginRate = (window._grossMarginPct || 0) / 100;
+  // MB landing = CA 2026 × taux MB manuel + MB pipeline pondérée
+  const marginInput = document.getElementById('margin-rate-input');
+  const marginRate = (parseFloat(marginInput.value) || 65) / 100;
   const mbConfirme = baseLanding * marginRate;
   const mbLanding = mbConfirme + wmb;
   document.getElementById('kpi-margin-projected').textContent = fmt(mbLanding);
-  document.getElementById('kpi-margin-projected-sub').textContent = `${fmt(baseLanding)} CA × ${(marginRate*100).toFixed(1)}% + ${fmt(wmb)} pipeline MB`;
+  document.getElementById('kpi-margin-projected-sub').textContent = `${fmt(baseLanding)} CA × ${(marginRate*100).toFixed(0)}% + ${fmt(wmb)} pipeline MB`;
 
   window._mbLanding = mbLanding;
   window._caLanding = caLanding;
@@ -1392,8 +1399,9 @@ function initLandingSection() {
 function computeObjectives() {
   // CA 2026 = facturé + à facturer (sans pipeline)
   const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
-  // MB objectifs = CA 2026 × taux de marge actuel
-  const marginRate = (window._grossMarginPct || 0) / 100;
+  // MB objectifs = CA 2026 × taux MB manuel
+  const marginInput = document.getElementById('margin-rate-input');
+  const marginRate = (parseFloat(marginInput.value) || 65) / 100;
   const mbProjected = landing * marginRate;
 
   for (const s of SCENARIOS) {
@@ -1492,6 +1500,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('dateFrom').value = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
   document.getElementById('dateTo').value = now.toISOString().split('T')[0];
   document.getElementById('overhead-slider').addEventListener('input', updateNetResult);
+  document.getElementById('margin-rate-input').addEventListener('input', updateLandingTotals);
   loadAll();
 });
 </script>
