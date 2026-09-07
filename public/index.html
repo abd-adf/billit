@@ -651,7 +651,7 @@
       <div class="kpi-value" id="kpi-margin-projected">--</div>
       <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
         <span style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">Taux MB :</span>
-        <input type="number" id="margin-rate-input" value="65" min="0" max="100" step="1"
+        <input type="number" id="margin-rate-input" value="70" min="0" max="100" step="1"
           style="width:60px; padding:4px 8px; border:1px solid var(--border); border-radius:4px; background:var(--surface2); color:var(--text); font-size:14px; font-weight:700; text-align:center;">
         <span style="font-size:12px; color:var(--text-secondary);">%</span>
       </div>
@@ -1367,7 +1367,7 @@ function updateLandingTotals() {
 
   // MB landing = CA 2026 × taux MB manuel + MB pipeline pondérée
   const marginInput = document.getElementById('margin-rate-input');
-  const marginRate = (parseFloat(marginInput.value) || 65) / 100;
+  const marginRate = (parseFloat(marginInput.value) || 70) / 100;
   const mbConfirme = baseLanding * marginRate;
   const mbLanding = mbConfirme + wmb;
   document.getElementById('kpi-margin-projected').textContent = fmt(mbLanding);
@@ -1401,7 +1401,7 @@ function computeObjectives() {
   const landing = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
   // MB objectifs = CA 2026 × taux MB manuel
   const marginInput = document.getElementById('margin-rate-input');
-  const marginRate = (parseFloat(marginInput.value) || 65) / 100;
+  const marginRate = (parseFloat(marginInput.value) || 70) / 100;
   const mbProjected = landing * marginRate;
 
   for (const s of SCENARIOS) {
