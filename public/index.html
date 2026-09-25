@@ -835,17 +835,22 @@ function setPeriod(period) {
   if (period !== 'custom') loadAll();
 }
 
+// Date locale en YYYY-MM-DD (toISOString passe en UTC et recule d'un jour en Belgique)
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function getPeriodDates() {
   const now = new Date();
   if (currentPeriod === 'month') {
     return {
-      from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0],
-      to: now.toISOString().split('T')[0],
+      from: isoDate(new Date(now.getFullYear(), now.getMonth(), 1)),
+      to: isoDate(now),
     };
   } else if (currentPeriod === 'year') {
     return {
-      from: new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0],
-      to: now.toISOString().split('T')[0],
+      from: isoDate(new Date(now.getFullYear(), 0, 1)),
+      to: isoDate(now),
     };
   } else {
     return {
@@ -904,6 +909,9 @@ function isAdvance(item) {
   return ADVANCE_KEYWORDS.some(k => desc.includes(k));
 }
 
+// Les notes de crédit arrivent avec un TotalExcl positif : on les soustrait
+const signedExcl = (item) => (item.OrderType === 'CreditNote' ? -1 : 1) * (item.TotalExcl || 0);
+
 // Group and sum by key
 function groupBy(items, keyFn, valueFn) {
   const map = {};
@@ -927,20 +935,22 @@ function renderTable(tbodyId, rows, colFn) {
 // VENTES - FACTURES
 // ============================================================
 async function loadInvoices(from, to) {
-  // Factures émises (Income)
-  const filter = `OrderType eq 'Invoice' and OrderDirection eq 'Income' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
+  // Factures émises (Income), nettes des notes de crédit
+  const filter = `(OrderType eq 'Invoice' or OrderType eq 'CreditNote') and OrderDirection eq 'Income' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
   const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
 
   let totalInvoiced = 0, totalPaid = 0, totalUnpaid = 0;
-  let paidCount = 0, unpaidCount = 0;
+  let paidCount = 0, unpaidCount = 0, creditNoteCount = 0;
   const byClient = {};
 
   window._revenueByProject = {};
   for (const item of items) {
-    const htva = item.TotalExcl || 0;
+    const htva = signedExcl(item);
+    const isCreditNote = item.OrderType === 'CreditNote';
+    if (isCreditNote) creditNoteCount++;
     totalInvoiced += htva;
-    if (item.Paid) { totalPaid += htva; paidCount++; }
-    else { totalUnpaid += htva; unpaidCount++; }
+    if (item.Paid) { totalPaid += htva; if (!isCreditNote) paidCount++; }
+    else { totalUnpaid += htva; if (!isCreditNote) unpaidCount++; }
 
     const client = item.CounterParty?.DisplayName || 'Inconnu';
     byClient[client] = (byClient[client] || 0) + htva;
@@ -953,7 +963,7 @@ async function loadInvoices(from, to) {
   window._totalInvoiced = totalInvoiced;
   window._invoicedByClient = byClient;
   document.getElementById('kpi-total-invoiced').textContent = fmt(totalInvoiced);
-  document.getElementById('kpi-total-invoiced-count').textContent = `${items.length} facture(s)`;
+  document.getElementById('kpi-total-invoiced-count').textContent = `${items.length - creditNoteCount} facture(s)` + (creditNoteCount ? `, ${creditNoteCount} note(s) de crédit` : '');
   document.getElementById('kpi-total-paid').textContent = fmt(totalPaid);
   document.getElementById('kpi-total-paid-count').textContent = `${paidCount} payée(s)`;
   document.getElementById('kpi-total-unpaid').textContent = fmt(totalUnpaid);
@@ -1215,17 +1225,19 @@ function computeMargin() {
 }
 
 async function loadPurchases(from, to) {
-  const filter = `OrderType eq 'Invoice' and OrderDirection eq 'Cost' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
+  // Factures fournisseur, nettes des notes de crédit
+  const filter = `(OrderType eq 'Invoice' or OrderType eq 'CreditNote') and OrderDirection eq 'Cost' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
   const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
 
-  let totalPurchase = 0;
+  let totalPurchase = 0, creditNoteCount = 0;
   const bySupplier = {};
   const byProject = {};
   const byCategory = {};
 
   window._costByProject = {};
   for (const item of items) {
-    const htva = item.TotalExcl || 0;
+    const htva = signedExcl(item);
+    if (item.OrderType === 'CreditNote') creditNoteCount++;
     totalPurchase += htva;
 
     // Fournisseur
@@ -1248,7 +1260,7 @@ async function loadPurchases(from, to) {
   window._totalPurchase = totalPurchase;
   window._totalCostDirect = Object.values(window._costByProject || {}).reduce((a, b) => a + b, 0);
   document.getElementById('kpi-purchase-total').textContent = fmt(totalPurchase);
-  document.getElementById('kpi-purchase-count').textContent = `${items.length} facture(s) fournisseur`;
+  document.getElementById('kpi-purchase-count').textContent = `${items.length - creditNoteCount} facture(s) fournisseur` + (creditNoteCount ? `, ${creditNoteCount} note(s) de crédit` : '');
 
   const supplierRows = Object.entries(bySupplier).sort((a, b) => b[1] - a[1]);
   document.getElementById('count-suppliers').textContent = supplierRows.length;
@@ -1497,8 +1509,8 @@ async function loadAll() {
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
   const now = new Date();
-  document.getElementById('dateFrom').value = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
-  document.getElementById('dateTo').value = now.toISOString().split('T')[0];
+  document.getElementById('dateFrom').value = isoDate(new Date(now.getFullYear(), 0, 1));
+  document.getElementById('dateTo').value = isoDate(now);
   document.getElementById('overhead-slider').addEventListener('input', updateNetResult);
   document.getElementById('margin-rate-input').addEventListener('input', updateLandingTotals);
   loadAll();

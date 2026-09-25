@@ -56,7 +56,7 @@ Champs NON disponibles dans la liste (seulement dans le détail `/v1/orders/{id}
 ## Métriques du dashboard
 
 ### 01 - Ventes (Facturé à date)
-- **Facturé** = `OrderType=Invoice` + `OrderDirection=Income`
+- **Facturé** = `OrderType=Invoice` + `OrderDirection=Income`, net des `CreditNote` Income
 - **A facturer** = `OrderType=Offer` + `OrderStatus=ToInvoice`, net des acomptes détectés
 - **Pipeline Dev** = `OrderType=Offer` + `OrderStatus=ApprovalNeeded`
 - **Landing 2026** = Facturé + A facturer (KPI violet)
@@ -68,7 +68,7 @@ Les factures d'acompte ont `OrderTitle` contenant :
 Le montant est soustrait du devis correspondant dans "A facturer".
 
 ### 02 - Achats
-- **Total achats** = `OrderType=Invoice` + `OrderDirection=Cost`
+- **Total achats** = `OrderType=Invoice` + `OrderDirection=Cost`, net des `CreditNote` Cost
 - Breakdown par fournisseur, projet (via ExternalProvider), catégorie (via SUPPLIER_CATEGORY map)
 - `SUPPLIER_CATEGORY` dans index.html : mapping fournisseur → catégorie, à compléter si nouveau fournisseur
 
@@ -95,6 +95,7 @@ Le montant est soustrait du devis correspondant dans "A facturer".
 ## Conventions
 
 - Montants toujours affichés en EUR avec `Intl.NumberFormat('fr-BE')`
-- Dates en ISO `YYYY-MM-DD` pour les filtres OData Billit
+- Dates en ISO `YYYY-MM-DD` pour les filtres OData Billit, en date locale (`isoDate`), jamais via `toISOString()` qui recule d'un jour en UTC
+- Les notes de crédit ont un `TotalExcl` positif dans l'API : les soustraire via `signedExcl`
 - Les filtres OData Billit utilisent `DateTime'YYYY-MM-DD'` comme format
 - Pas de tirets cadratin dans les textes UI
