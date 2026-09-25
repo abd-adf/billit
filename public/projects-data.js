@@ -1,6 +1,6 @@
 // Mapping numéro de commande → code projet
 // Généré depuis les exports Billit - à mettre à jour mensuellement
-// Dernière mise à jour : 2026-09-04
+// Dernière mise à jour : 2026-09-25
 
 const PROJECTS_DATA = {
   // Factures de vente → projet
@@ -74,6 +74,7 @@ const PROJECTS_DATA = {
     "26-04-220": "PELICANO_26",
     "ADI26-0278": "PELICANO_26",
     "2026/001": "PELICANO_26",
+    "2026/004": "PELICANO_26",
     "260058": "PELICANO_26",
     "260178": "PELICANO_26",
     "RN2026.05.009446": "PELICANO_26",
