@@ -73,8 +73,20 @@ Le montant est soustrait du devis correspondant dans "A facturer".
 
 ### 03 - Marge brute par projet
 - Données dans `public/projects-data.js` : mapping `{OrderNumber → projet}` pour ventes et achats
-- À mettre à jour mensuellement depuis exports Excel Billit (ventes + achats avec colonne Projet)
-- Workflow : user envoie les deux xlsx → Claude génère le nouveau projects-data.js → git push
+- Mise à jour sans export Excel (workflow par défaut) :
+  1. `node scripts/check-billit.mjs` (lit `.env`, API en lecture seule) : liste les ventes/achats non mappés, les doublons probables, et régénère `doublons-billit.csv`
+  2. Claude propose un projet pour chaque facture non mappée d'après le client/fournisseur et le titre (ex : Amis des Aveugles → ADA_26, titre "ADA - ..." → ADA_26, Greenpeace → GP_26)
+  3. L'utilisateur valide les cas ambigus (ex : factures Adfinitas ADI26-xxxx sans titre), puis Claude édite projects-data.js → git push
+  - Frais généraux (Securex, Arts 44, Ticket Restaurant, SaaS...) restent volontairement non mappés
+- Exports Excel Billit (ventes + achats avec colonne Projet) : seulement pour un contrôle complet, si des flags ont été modifiés dans Billit sur des factures déjà mappées
+- Cas particuliers connus : PAF ! SRL → MEMISA_26 ; factures ADI26-0760/0761/0762 → ADA_26
+
+### Doublons d'achats
+- Billit empêche souvent de supprimer une facture d'achat payée ou transmise au comptable
+- Les doublons sont listés par OrderID dans `PROJECTS_DATA.duplicates` (projects-data.js, avec commentaire) et exclus dans `loadPurchases`
+- Cause habituelle : réencodage groupé (ex. le 27/04 et le 18/06) avec la date ajoutée au numéro ("2026-ART-370 31/03/2026") ou un numéro vide / "InvoiceNumber"
+- Ne jamais ajouter un doublon sans validation de l'utilisateur ; garder de préférence la version payée
+- Après chaque ajout : relancer `node scripts/check-billit.mjs` pour régénérer `doublons-billit.csv` (à la racine, séparateur `;`, pour le comptable) et commiter le CSV
 - Projets Billit (`/v1/projects`) : ADA_26, PELICANO_26, EF_26, CHARCOT_26, CAP48_26, GP_26 (Greenpeace), AVE_26, MEMISA_26 (inclut PAF ! SRL), MUCO_26
 
 ## Limitations connues de l'API Billit
