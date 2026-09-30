@@ -99,6 +99,7 @@ const PROJECTS_DATA = {
     111735307, // Arts 44 "2026-ART-370 31/03/2026" (doublon de 2026-ART- 370)
     111735237, // Arts 44 "2026-ART- 416 01/04/2026" (doublon de 2026-ART- 416)
     122741409, // Arts 44 "2026-ART-416" (doublon de 2026-ART- 416)
-    113569345  // Arts 44 "InvoiceNumber" (doublon de 2026-ART-530)
+    113569345, // Arts 44 "InvoiceNumber" (doublon de 2026-ART-530)
+    111730400  // Perplexity AI sans numero du 27/04 (doublon de 2BZGQFIV-0001)
   ]
 };
