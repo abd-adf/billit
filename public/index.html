@@ -703,6 +703,11 @@
       <div class="kpi-value" id="kpi-dev">--</div>
       <div class="kpi-sub" id="kpi-dev-count"></div>
     </div>
+    <div class="kpi-card" style="--accent-color: var(--accent4)">
+      <div class="kpi-label">Ventes intragroupe HTVA</div>
+      <div class="kpi-value" id="kpi-intragroup-sales">--</div>
+      <div class="kpi-sub" id="kpi-intragroup-sales-sub"></div>
+    </div>
   </div>
 
   <div class="tables-grid">
@@ -756,6 +761,11 @@
       <div class="kpi-label">Total achats HTVA</div>
       <div class="kpi-value" id="kpi-purchase-total">--</div>
       <div class="kpi-sub" id="kpi-purchase-count"></div>
+    </div>
+    <div class="kpi-card" style="--accent-color: var(--accent4)">
+      <div class="kpi-label">Achats intragroupe HTVA</div>
+      <div class="kpi-value" id="kpi-intragroup-purchases">--</div>
+      <div class="kpi-sub" id="kpi-intragroup-purchases-sub"></div>
     </div>
   </div>
 
@@ -962,6 +972,7 @@ async function loadInvoices(from, to) {
 
   window._totalInvoiced = totalInvoiced;
   window._invoicedByClient = byClient;
+  renderIntragroup('sales', items, totalInvoiced);
   document.getElementById('kpi-total-invoiced').textContent = fmt(totalInvoiced);
   document.getElementById('kpi-total-invoiced-count').textContent = `${items.length - creditNoteCount} facture(s)` + (creditNoteCount ? `, ${creditNoteCount} note(s) de crédit` : '');
   document.getElementById('kpi-total-paid').textContent = fmt(totalPaid);
@@ -1060,6 +1071,24 @@ async function loadDevPipeline(from, to) {
 // ============================================================
 // ACHATS
 // ============================================================
+// Sociétés du groupe (comparaison sans casse sur CounterParty.DisplayName)
+// Ajouter ici toute nouvelle entité du groupe
+const INTRAGROUP = ['Adfinitas', 'BONUM GROUP HOLDING'];
+const isIntragroup = (item) => INTRAGROUP.some(n => n.toLowerCase() === (item.CounterParty?.DisplayName || '').trim().toLowerCase());
+
+function renderIntragroup(prefix, items, total) {
+  const rows = items.filter(isIntragroup);
+  const amount = rows.reduce((s, item) => s + signedExcl(item), 0);
+  const byParty = {};
+  for (const item of rows) byParty[item.CounterParty.DisplayName] = (byParty[item.CounterParty.DisplayName] || 0) + signedExcl(item);
+  const pct = total ? Math.round(amount / total * 100) : 0;
+  const detail = Object.entries(byParty).sort((a, b) => b[1] - a[1]).map(([n, v]) => `${n} ${fmt(v)}`).join(', ');
+  document.getElementById(`kpi-intragroup-${prefix}`).textContent = fmt(amount);
+  document.getElementById(`kpi-intragroup-${prefix}-sub`).textContent = rows.length
+    ? `${pct}% du total, ${rows.length} document(s) : ${detail}`
+    : 'Aucun document intragroupe';
+}
+
 // Mapping fournisseur → catégorie d'achat
 // Ajouter ici les nouveaux fournisseurs avec leur catégorie
 const SUPPLIER_CATEGORY = {
@@ -1263,6 +1292,7 @@ async function loadPurchases(from, to) {
   window._totalCostDirect = Object.values(window._costByProject || {}).reduce((a, b) => a + b, 0);
   document.getElementById('kpi-purchase-total').textContent = fmt(totalPurchase);
   document.getElementById('kpi-purchase-count').textContent = `${items.length - creditNoteCount} facture(s) fournisseur` + (creditNoteCount ? `, ${creditNoteCount} note(s) de crédit` : '');
+  renderIntragroup('purchases', items, totalPurchase);
 
   const supplierRows = Object.entries(bySupplier).sort((a, b) => b[1] - a[1]);
   document.getElementById('count-suppliers').textContent = supplierRows.length;

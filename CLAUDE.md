@@ -70,6 +70,7 @@ Le montant est soustrait du devis correspondant dans "A facturer".
 - **Total achats** = `OrderType=Invoice` + `OrderDirection=Cost`, net des `CreditNote` Cost
 - Breakdown par fournisseur, projet (via ExternalProvider), catégorie (via SUPPLIER_CATEGORY map)
 - `SUPPLIER_CATEGORY` dans index.html : mapping fournisseur → catégorie, à compléter si nouveau fournisseur
+- **Intragroupe** : KPI achats et ventes intragroupe, via la liste `INTRAGROUP` dans index.html (nom de contrepartie, sans casse). Actuellement : Adfinitas, BONUM GROUP HOLDING. Fundraisers Belgium n'est PAS intragroupe
 
 ### 03 - Marge brute par projet
 - Données dans `public/projects-data.js` : mapping `{OrderNumber → projet}` pour ventes et achats
