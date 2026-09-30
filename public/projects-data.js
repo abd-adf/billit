@@ -92,5 +92,13 @@ const PROJECTS_DATA = {
     "260178": "PELICANO_26",
     "RN2026.05.009446": "PELICANO_26",
     "ADI26-0523": "PELICANO_26"
-  }
+  },
+  // Doublons non supprimables dans Billit (OrderID) : exclus des achats
+  duplicates: [
+    93972568,  // Arts 44 2026-ART- 119 (doublon de "2026-ART-119 30/01/2026")
+    111735307, // Arts 44 "2026-ART-370 31/03/2026" (doublon de 2026-ART- 370)
+    111735237, // Arts 44 "2026-ART- 416 01/04/2026" (doublon de 2026-ART- 416)
+    122741409, // Arts 44 "2026-ART-416" (doublon de 2026-ART- 416)
+    113569345  // Arts 44 "InvoiceNumber" (doublon de 2026-ART-530)
+  ]
 };

@@ -1227,7 +1227,9 @@ function computeMargin() {
 async function loadPurchases(from, to) {
   // Factures fournisseur, nettes des notes de crédit
   const filter = `(OrderType eq 'Invoice' or OrderType eq 'CreditNote') and OrderDirection eq 'Cost' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
-  const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
+  const duplicates = new Set(PROJECTS_DATA.duplicates || []);
+  const items = (await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`))
+    .filter(item => !duplicates.has(item.OrderID));
 
   let totalPurchase = 0, creditNoteCount = 0;
   const bySupplier = {};
