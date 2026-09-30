@@ -57,6 +57,9 @@ const PROJECTS_DATA = {
     "260223": "ADA_26",
     "Leg26-0300": "ADA_26",
     "Leg26-0301": "ADA_26",
+    "ADI26-0760": "ADA_26",
+    "ADI26-0761": "ADA_26",
+    "ADI26-0762": "ADA_26",
     // CHARCOT_26
     "2026-3-11": "CHARCOT_26",
     "2026-6-21": "CHARCOT_26",
