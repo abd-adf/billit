@@ -1,6 +1,6 @@
 // Mapping numéro de commande → code projet
 // Généré depuis les exports Billit - à mettre à jour mensuellement
-// Dernière mise à jour : 2026-09-25
+// Dernière mise à jour : 2026-09-30
 
 const PROJECTS_DATA = {
   // Factures de vente → projet
@@ -28,7 +28,13 @@ const PROJECTS_DATA = {
     "2621": "CAP48_26",
     "2622": "ADA_26",
     "2623": "LEASING_VELO",
-    "2624": "PELICANO_26"
+    "2624": "PELICANO_26",
+    "2625": "GP_26",
+    "2626": "PELICANO_26",
+    "2627": "MEMISA_26",
+    "2628": "ADA_26",
+    "2629": "EF_26",
+    "2630": "ADA_26"
   },
   // Factures d'achat → projet
   purchases: {
@@ -49,9 +55,13 @@ const PROJECTS_DATA = {
     "Invoice 22600639": "ADA_26",
     "ADI26-0524": "ADA_26",
     "260223": "ADA_26",
+    "Leg26-0300": "ADA_26",
+    "Leg26-0301": "ADA_26",
     // CHARCOT_26
     "2026-3-11": "CHARCOT_26",
     "2026-6-21": "CHARCOT_26",
+    // GP_26
+    "Leg26-0302": "GP_26",
     // EF_26
     "20260207": "EF_26",
     "26-02-215": "EF_26",

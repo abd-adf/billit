@@ -49,7 +49,6 @@ Champs clés dans la réponse liste :
 - `ExternalProvider` : source externe (ex: Peppol, APIFeed)
 
 Champs NON disponibles dans la liste (seulement dans le détail `/v1/orders/{id}`) :
-- `Projet` : code projet (ex: ADA_26) - c'est pourquoi on utilise projects-data.js
 - `VentilationCode` : code comptable
 - `Lines` : lignes de commande
 
@@ -76,12 +75,12 @@ Le montant est soustrait du devis correspondant dans "A facturer".
 - Données dans `public/projects-data.js` : mapping `{OrderNumber → projet}` pour ventes et achats
 - À mettre à jour mensuellement depuis exports Excel Billit (ventes + achats avec colonne Projet)
 - Workflow : user envoie les deux xlsx → Claude génère le nouveau projects-data.js → git push
-- Projets actuels : ADA_26, PELICANO_26, EF_26, CHARCOT_26
+- Projets Billit (`/v1/projects`) : ADA_26, PELICANO_26, EF_26, CHARCOT_26, CAP48_26, GP_26 (Greenpeace), AVE_26, MEMISA_26 (inclut PAF ! SRL), MUCO_26
 
 ## Limitations connues de l'API Billit
 
 - `$top` limité à 100 (pas 500)
-- Le champ `Projet` n'est pas dans la liste `/v1/orders`, seulement dans le détail
+- Le lien commande → projet n'est PAS exposé par l'API (ni liste, ni détail, ni filtre OData). `/v1/projects` liste les projets mais sans leurs commandes. Seul l'export Excel Billit contient la colonne Projet, d'où projects-data.js
 - Le champ `Invoiced` n'est pas filtrable en OData
 - Les catégories d'achat ne sont pas dans l'API liste
 
