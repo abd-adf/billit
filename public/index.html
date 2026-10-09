@@ -582,7 +582,8 @@
   </div>
 
   <!-- ============ VENTES ============ -->
-  <div class="section-title"><span class="section-accent">02</span> VENTES</div>
+  <div class="section-title"><span class="section-accent">02</span> VENTES DE PRESTATIONS</div>
+  <p class="kpi-sub" style="margin-bottom:16px">CA, marge des projets et projections hors cessions de matériel. Les cessions sont présentées séparément ci-dessous.</p>
 
   <!-- KPIs majeurs - ligne 1 -->
   <div class="kpi-grid-major">
@@ -751,6 +752,18 @@
       </div>
       <div class="chart-legend" id="chart-legend"></div>
     </div>
+  </div>
+
+  <div class="table-card" style="margin-bottom:20px">
+    <div class="table-header">
+      <span class="table-title">Cessions de matériel hors activité</span>
+      <span class="table-count" id="non-operating-total">--</span>
+    </div>
+    <p class="kpi-sub" style="padding:0 20px 16px">Rachat/revente de matériel, dont le vélo Cash4Bike. Hors CA de prestations et marge des projets ; montants HTVA de revente, sans présumer de la marge de cession.</p>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Date</th><th>Facture</th><th>Acquéreur</th><th>Objet</th><th>Revente HTVA</th></tr></thead>
+      <tbody id="table-non-operating"><tr><td colspan="5" class="empty-state">Chargement...</td></tr></tbody>
+    </table></div>
   </div>
 
   <!-- ============ ACHATS ============ -->
@@ -935,6 +948,18 @@ function isAdvance(item) {
 // Les notes de crédit arrivent avec un TotalExcl positif : on les soustrait
 const signedExcl = (item) => (item.OrderType === 'CreditNote' ? -1 : 1) * (item.TotalExcl || 0);
 
+// Only the explicitly mapped asset disposal is outside service revenue.
+function isNonOperatingSale(item) {
+  return item.OrderDirection === 'Income' && typeof PROJECTS_DATA !== 'undefined'
+    && PROJECTS_DATA.sales[item.OrderNumber] === 'LEASING_VELO';
+}
+const safeText = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+function renderNonOperatingSales(items) {
+  document.getElementById('non-operating-total').textContent = fmt(items.reduce((sum, item) => sum + signedExcl(item), 0));
+  renderTable('table-non-operating', items, item => `<tr><td>${safeText((item.OrderDate || '').slice(0,10).split('-').reverse().join('/'))}</td><td>${safeText(item.OrderNumber)}</td><td>${safeText(item.CounterParty?.DisplayName)}</td><td>${safeText(item.OrderTitle)}</td><td>${fmt(signedExcl(item))}</td></tr>`);
+}
+
+
 // Group and sum by key
 function groupBy(items, keyFn, valueFn) {
   const map = {};
@@ -960,7 +985,9 @@ function renderTable(tbodyId, rows, colFn) {
 async function loadInvoices(from, to) {
   // Factures émises (Income), nettes des notes de crédit
   const filter = `(OrderType eq 'Invoice' or OrderType eq 'CreditNote') and OrderDirection eq 'Income' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
-  const items = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
+  const allItems = await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`);
+  renderNonOperatingSales(allItems.filter(isNonOperatingSale));
+  const items = allItems.filter(item => !isNonOperatingSale(item));
 
   let totalInvoiced = 0, totalPaid = 0, totalUnpaid = 0;
   let paidCount = 0, unpaidCount = 0, creditNoteCount = 0;
@@ -1519,6 +1546,8 @@ async function loadAll() {
   setStatus('loading', `Chargement des données du ${from} au ${to}...`);
 
   // Reset KPIs
+  document.getElementById('non-operating-total').textContent = '...';
+  document.getElementById('table-non-operating').textContent = '';
   document.getElementById('media-verified-total').textContent = '...';
   document.getElementById('media-import-status').textContent = 'Chargement des factures vérifiées...';
   document.getElementById('table-media-invoices').textContent = '';
