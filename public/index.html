@@ -756,6 +756,18 @@
   <!-- ============ ACHATS ============ -->
   <div class="section-title"><span class="section-accent">04</span> ACHATS</div>
 
+  <details class="table-card" style="margin-bottom:20px">
+    <summary style="padding:18px;cursor:pointer">Médias Entraide / EF_26 : <strong id="media-verified-total">...</strong></summary>
+    <p id="media-import-status" style="padding:0 18px 12px;color:var(--text-secondary)">Chargement des factures vérifiées...</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Date</th><th>Fournisseur</th><th>Facture</th><th>Projet</th><th>Montant net</th><th>Prise en compte</th></tr></thead>
+        <tbody id="table-media-invoices"></tbody>
+      </table>
+    </div>
+    <p style="padding:12px 18px;color:var(--text-secondary);font-size:12px">Factures par date d’émission, avoirs déduits. La tentative Meta échouée est exclue. Le 05/10 couvre aussi des dépenses de septembre : la ventilation journalière reste à confirmer. Ces ajustements concernent uniquement le dashboard.</p>
+  </details>
+
   <div class="kpi-grid">
     <div class="kpi-card" style="--accent-color: var(--accent3)">
       <div class="kpi-label">Total achats HTVA</div>
@@ -818,6 +830,7 @@
 </main>
 
 <script src="projects-data.js"></script>
+<script src="media-purchases.js"></script>
 <script>
 // ============================================================
 // CONFIG
@@ -1257,8 +1270,18 @@ async function loadPurchases(from, to) {
   // Factures fournisseur, nettes des notes de crédit
   const filter = `(OrderType eq 'Invoice' or OrderType eq 'CreditNote') and OrderDirection eq 'Cost' and OrderDate ge DateTime'${from}' and OrderDate le DateTime'${to}'`;
   const duplicates = new Set(PROJECTS_DATA.duplicates || []);
-  const items = (await fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`))
-    .filter(item => !duplicates.has(item.OrderID));
+  const [billitItems, mediaResponse] = await Promise.all([
+    fetchAllPages(`/v1/orders?$filter=${encodeURIComponent(filter)}`),
+    fetch('/.netlify/functions/media-invoices', { cache: 'no-store' }),
+  ]);
+  if (!mediaResponse.ok) throw new Error('Factures médias indisponibles : les coûts ne peuvent pas être actualisés.');
+  const merged = MediaPurchases.merge(billitItems.filter(item => !duplicates.has(item.OrderID)), await mediaResponse.json(), from, to);
+  const items = merged.items;
+  const mediaTotal = merged.media.reduce((sum, row) => sum + row.cents, 0) / 100;
+  document.getElementById('media-verified-total').textContent = fmt(mediaTotal);
+  document.getElementById('media-import-status').textContent = `${merged.media.length} pièces vérifiées sur la période. Ajustement net par rapport à Billit : ${fmt(merged.deltaCents / 100)}. Chaque référence est comptée une seule fois, y compris après un ajout ultérieur dans Billit.`;
+  const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  renderTable('table-media-invoices', merged.media, row => `<tr><td>${escapeHtml(row.date.split('-').reverse().join('/'))}</td><td>${escapeHtml(row.supplier)}</td><td>${escapeHtml(row.reference)}</td><td>${escapeHtml(row.project)}</td><td>${fmt(row.cents / 100)}</td><td>${escapeHtml(row.status)}</td></tr>`);
 
   let totalPurchase = 0, creditNoteCount = 0;
   const bySupplier = {};
@@ -1284,7 +1307,7 @@ async function loadPurchases(from, to) {
     byCategory[category] = (byCategory[category] || 0) + htva;
 
     // Marge par projet
-    const proj = (typeof PROJECTS_DATA !== 'undefined') ? PROJECTS_DATA.purchases[item.OrderNumber] : null;
+    const proj = item.DashboardProject || ((typeof PROJECTS_DATA !== 'undefined') ? PROJECTS_DATA.purchases[item.OrderNumber] : null);
     if (proj) window._costByProject[proj] = (window._costByProject[proj] || 0) + htva;
   }
 
@@ -1496,6 +1519,9 @@ async function loadAll() {
   setStatus('loading', `Chargement des données du ${from} au ${to}...`);
 
   // Reset KPIs
+  document.getElementById('media-verified-total').textContent = '...';
+  document.getElementById('media-import-status').textContent = 'Chargement des factures vérifiées...';
+  document.getElementById('table-media-invoices').textContent = '';
   ['kpi-total-invoiced', 'kpi-total-paid', 'kpi-total-unpaid', 'kpi-dev', 'kpi-to-invoice', 'kpi-landing', 'kpi-gross-margin', 'kpi-gross-margin-pct', 'kpi-margin-projected', 'kpi-ca-landing-total', 'kpi-purchase-total', 'kpi-net-result']
     .forEach(id => { document.getElementById(id).textContent = '...'; });
 

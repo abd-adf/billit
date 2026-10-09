@@ -1,0 +1,5 @@
+{
+  "name": "billit-dashboard",
+  "private": true,
+  "dependencies": { "@netlify/blobs": "11.1.4" }
+}

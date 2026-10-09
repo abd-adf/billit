@@ -92,6 +92,14 @@ Le montant est soustrait du devis correspondant dans "A facturer".
 
 ## Limitations connues de l'API Billit
 
+### Factures médias vérifiées dans le dashboard
+
+- `public/media-purchases.js` fusionne les factures vérifiées avec Billit par fournisseur, référence et type. Les dates et montants des pièces vérifiées prévalent dans le dashboard uniquement.
+- Les données financières importées sont stockées dans le store Netlify Blobs `dashboard-media`, jamais dans ce dépôt public. Les PDF originaux ne sont pas publiés.
+- `netlify/functions/media-invoices.mjs` accepte seulement un import dont le SHA-256 correspond au lot revu, via POST. L'écriture est immuable (`onlyIfNew`). GET restitue ce lot ; une absence produit une erreur visible plutôt qu'un coût sous-estimé.
+- Pour un nouveau lot : contrôler les pièces et avoirs, conserver les factures précédentes utiles, calculer le SHA-256 du JSON exact, changer la référence dans la fonction, déployer puis uploader ce JSON exact sur `/.netlify/functions/media-invoices`. Vérifier la vue par période et l'absence de doublon avec Billit. Ne pas commiter les données financières ou les secrets.
+- Le rattachement `DashboardProject` des pièces importées pilote les coûts directs et la marge, sans écriture dans Billit. Les autres pièces gardent leur mapping `PROJECTS_DATA`.
+
 - `$top` limité à 100 (pas 500)
 - Le lien commande → projet n'est PAS exposé par l'API (ni liste, ni détail, ni filtre OData). `/v1/projects` liste les projets mais sans leurs commandes. Seul l'export Excel Billit contient la colonne Projet, d'où projects-data.js
 - Le champ `Invoiced` n'est pas filtrable en OData
