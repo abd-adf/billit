@@ -1,6 +1,6 @@
 // Mapping numéro de commande → code projet
 // Généré depuis les exports Billit - à mettre à jour mensuellement
-// Dernière mise à jour : 2026-09-30
+// Dernière mise à jour : 2026-10-20
 
 const PROJECTS_DATA = {
   // Factures de vente → projet
@@ -34,7 +34,10 @@ const PROJECTS_DATA = {
     "2627": "MEMISA_26",
     "2628": "ADA_26",
     "2629": "EF_26",
-    "2630": "ADA_26"
+    "2630": "ADA_26",
+    "2631": "AVE_26",
+    "2632": "ADA_26",
+    "2633": "ADA_26"
   },
   // Factures d'achat → projet
   purchases: {

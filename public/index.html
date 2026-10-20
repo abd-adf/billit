@@ -497,7 +497,7 @@
     <div class="table-card">
       <div class="table-header">
         <span class="table-title">Progression annuelle</span>
-        <span class="table-count" style="font-size:11px; opacity:0.7;">2024 = exercice 18 mois (juin 2023 - dec 2024) · a date : overhead au prorata du budget</span>
+        <span class="table-count" style="font-size:11px; opacity:0.7;">2024 = exercice 18 mois (juin 2023 - dec 2024) · Landing : facture + a facturer, hors pipeline</span>
       </div>
       <div class="table-scroll">
         <table>
@@ -506,7 +506,7 @@
               <th></th>
               <th style="text-align:right">2024 (18m)</th>
               <th style="text-align:right">2025</th>
-              <th style="text-align:right" id="prog-adate-head">2026 a date</th>
+              <th style="text-align:right">2026 Landing</th>
               <th style="text-align:right">2026 Objectif</th>
             </tr>
           </thead>
@@ -515,35 +515,35 @@
               <td><strong>CA</strong></td>
               <td style="text-align:right; color:var(--text-secondary)">343 129</td>
               <td style="text-align:right">328 050</td>
-              <td style="text-align:right; font-weight:700" id="prog-adate-ca">--</td>
+              <td style="text-align:right; font-weight:700" id="prog-landing-ca">--</td>
               <td style="text-align:right; color:var(--accent4)">420 000</td>
             </tr>
             <tr>
               <td><strong>MB</strong></td>
               <td style="text-align:right; color:var(--text-secondary)">196 777</td>
               <td style="text-align:right">184 503</td>
-              <td style="text-align:right; font-weight:700" id="prog-adate-mb">--</td>
+              <td style="text-align:right; font-weight:700" id="prog-landing-mb">--</td>
               <td style="text-align:right; color:var(--accent4)">260 000</td>
             </tr>
             <tr>
               <td><strong>MB %</strong></td>
               <td style="text-align:right; color:var(--text-secondary)">57.3%</td>
               <td style="text-align:right">56.2%</td>
-              <td style="text-align:right; font-weight:700" id="prog-adate-mbpct">--</td>
+              <td style="text-align:right; font-weight:700" id="prog-landing-mbpct">--</td>
               <td style="text-align:right; color:var(--accent4)">61.9%</td>
             </tr>
             <tr style="border-top:2px solid var(--border);">
               <td><strong>Overhead</strong></td>
               <td style="text-align:right; color:var(--text-secondary)">205 642</td>
               <td style="text-align:right">158 091</td>
-              <td style="text-align:right; font-weight:700" id="prog-adate-overhead">--</td>
+              <td style="text-align:right; font-weight:700" id="prog-landing-overhead">--</td>
               <td style="text-align:right; color:var(--accent4)">190 000</td>
             </tr>
             <tr>
               <td><strong>Resultat av. impot</strong></td>
               <td style="text-align:right; color:var(--accent3)">-8 865</td>
               <td style="text-align:right; color:var(--success)">26 412</td>
-              <td style="text-align:right; font-weight:700" id="prog-adate-result">--</td>
+              <td style="text-align:right; font-weight:700" id="prog-landing-result">--</td>
               <td style="text-align:right; color:var(--accent4)">70 000</td>
             </tr>
           </tbody>
@@ -1490,14 +1490,10 @@ function updateNetResult() {
   updateComparatif();
 }
 
-// Colonne "2026 a date" du tableau Progression annuelle.
-// Overhead : les salaires ne sont pas dans Billit (Securex), donc prorata du budget overhead (slider) au jour de fin de periode.
-function renderProgressionAdate(to) {
-  const end = new Date(to + 'T00:00:00');
-  const yearStart = new Date(end.getFullYear(), 0, 1);
-  const yearDays = (new Date(end.getFullYear() + 1, 0, 1) - yearStart) / 86400000;
-  const elapsed = Math.round((end - yearStart) / 86400000) + 1;
-  const overhead = parseInt(document.getElementById('overhead-slider').value, 10) * elapsed / yearDays;
+// Colonne "2026 Landing" du tableau Progression annuelle (CA et MB valides, sans pipeline).
+// Overhead : budget annuel complet (slider), les salaires etant dans Securex et pas dans Billit.
+function renderProgressionLanding() {
+  const overhead = parseInt(document.getElementById('overhead-slider').value, 10);
   const ca = (window._totalInvoiced || 0) + (window._totalToInvoice || 0); // CA valide = facture + a facturer
   // MB valide = MB facturee (projets mappes) + a facturer x taux MB du dash
   const marginRate = (parseFloat(document.getElementById('margin-rate-input').value) || 70) / 100;
@@ -1505,16 +1501,15 @@ function renderProgressionAdate(to) {
   const mb = (window._grossMargin || 0) + mbToInvoice;
   const result = mb - overhead;
   const num = v => new Intl.NumberFormat('fr-BE', { maximumFractionDigits: 0 }).format(v);
-  document.getElementById('prog-adate-head').textContent = `2026 a date (${to.slice(8, 10)}/${to.slice(5, 7)})`;
-  document.getElementById('prog-adate-ca').textContent = num(ca);
-  document.getElementById('prog-adate-mb').textContent = num(mb);
-  const mbCell = document.getElementById('prog-adate-mb');
+  document.getElementById('prog-landing-ca').textContent = num(ca);
+  document.getElementById('prog-landing-mb').textContent = num(mb);
+  const mbCell = document.getElementById('prog-landing-mb');
   mbCell.title = `${num(window._grossMargin || 0)} MB facturee + ${num(mbToInvoice)} a facturer x ${(marginRate * 100).toFixed(0)}%`;
-  document.getElementById('prog-adate-mbpct').textContent = ca > 0 ? `${(mb / ca * 100).toFixed(1)}%` : '--';
-  const ohCell = document.getElementById('prog-adate-overhead');
+  document.getElementById('prog-landing-mbpct').textContent = ca > 0 ? `${(mb / ca * 100).toFixed(1)}%` : '--';
+  const ohCell = document.getElementById('prog-landing-overhead');
   ohCell.textContent = num(overhead);
-  ohCell.title = `Prorata ${elapsed}/${yearDays} jours du budget overhead annuel (salaires Securex non presents dans Billit)`;
-  const resCell = document.getElementById('prog-adate-result');
+  ohCell.title = 'Budget overhead annuel (curseur frais generaux)';
+  const resCell = document.getElementById('prog-landing-result');
   resCell.textContent = num(result);
   resCell.style.color = result >= 0 ? 'var(--success)' : 'var(--accent3)';
 }
@@ -1618,7 +1613,7 @@ async function loadAll() {
     window._landing2026 = (window._totalInvoiced || 0) + (window._totalToInvoice || 0);
     // Landing section : pipeline deals + overhead
     initLandingSection();
-    renderProgressionAdate(to);
+    renderProgressionLanding();
     setStatus('ok', `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-BE')} - Période ${from} > ${to}`);
   } catch (err) {
     setStatus('error', `Erreur : ${err.message}. Vérifiez BILLIT_API_KEY et BILLIT_PARTY_ID dans Netlify.`);
@@ -1637,7 +1632,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('dateTo').value = isoDate(now);
   document.getElementById('overhead-slider').addEventListener('input', updateNetResult);
   ['overhead-slider', 'margin-rate-input'].forEach(id => document.getElementById(id).addEventListener('input', () => {
-    if (window._grossMargin !== undefined) renderProgressionAdate(document.getElementById('dateTo').value);
+    if (window._grossMargin !== undefined) renderProgressionLanding();
   }));
   document.getElementById('margin-rate-input').addEventListener('input', updateLandingTotals);
   loadAll();
